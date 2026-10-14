@@ -6,7 +6,7 @@
   "redirects": [
     {
       "source": "/fpl",
-      "destination": "https://fpl-assistant.polandcentral.cloudapp.azure.com/",
+      "destination": "https://pitchme.polandcentral.cloudapp.azure.com/",
       "permanent": false
     }
   ],

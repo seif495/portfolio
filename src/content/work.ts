@@ -127,7 +127,7 @@ export const fpl = {
   period: 'Dec 2025 – present',
   status: 'Live',
   links: [
-    { label: 'Live app', href: 'https://fpl-assistant.polandcentral.cloudapp.azure.com' },
+    { label: 'Live app', href: 'https://pitchme.polandcentral.cloudapp.azure.com' },
     { label: 'Source', href: 'https://github.com/youssef20031/ACL_M3' },
     { label: 'Evaluation report', href: 'https://github.com/youssef20031/ACL_M3/blob/main/docs/ml_evaluation/README.md' },
   ],
