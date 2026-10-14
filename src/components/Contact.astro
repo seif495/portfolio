@@ -1,0 +1,120 @@
+---
+import { profile } from '../content/profile';
+---
+
+<section class="contact" id="contact" aria-labelledby="contact-title">
+  <div class="wrap">
+    <div class="contact__inner" data-reveal>
+      <p class="label"><span class="signal">§05</span>&emsp;Contact</p>
+      <h2 class="contact__title serif" id="contact-title">
+        Have a system that needs <em>building, or testing?</em>
+      </h2>
+      <p class="contact__text">
+        I’m open to roles in AI and ML engineering, data science and data engineering. Email is the fastest way to
+        reach me.
+      </p>
+      <div class="contact__email">
+        <a class="contact__address serif" href={`mailto:${profile.email}`}>{profile.email}</a>
+        <button type="button" class="btn contact__copy" data-copy={profile.email}>
+          <span data-copy-label>Copy</span>
+        </button>
+      </div>
+      <ul class="contact__links">
+        <li><a class="link" href={profile.links.linkedin} target="_blank" rel="me noopener">LinkedIn <span class="arrow" aria-hidden="true">↗</span></a></li>
+        <li><a class="link" href={profile.links.github} target="_blank" rel="me noopener">GitHub <span class="arrow" aria-hidden="true">↗</span></a></li>
+        <li><a class="link" href={profile.links.resume} target="_blank" rel="noopener">Résumé PDF <span class="arrow" aria-hidden="true">↗</span></a></li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<style>
+  .contact {
+    padding: clamp(var(--s9), 12vw, 11rem) 0 clamp(var(--s8), 8vw, var(--s9));
+  }
+
+  .contact__inner {
+    padding-top: var(--s5);
+    border-top: 1px solid var(--line-2);
+  }
+
+  .contact__title {
+    margin-top: var(--s5);
+    font-size: clamp(2.6rem, 1.4rem + 5vw, 6.2rem);
+    line-height: 0.98;
+    letter-spacing: -0.012em;
+    max-width: 16ch;
+  }
+
+  .contact__title em {
+    color: var(--signal);
+  }
+
+  .contact__text {
+    max-width: 56ch;
+    margin-top: var(--s5);
+    color: var(--bone-2);
+    font-size: var(--fs-lead);
+    line-height: 1.5;
+  }
+
+  .contact__email {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--s3) var(--s5);
+    margin-top: var(--s6);
+  }
+
+  .contact__address {
+    font-size: clamp(1.6rem, 1.1rem + 2.2vw, 3rem);
+    line-height: 1.1;
+    text-decoration: underline;
+    text-decoration-color: var(--line-3);
+    text-decoration-thickness: 1px;
+    text-underline-offset: 0.16em;
+    overflow-wrap: anywhere;
+    transition: text-decoration-color var(--t-fast) var(--ease-out);
+  }
+
+  .contact__address:hover {
+    text-decoration-color: var(--signal);
+  }
+
+  .contact__copy {
+    min-height: 40px;
+  }
+
+  .contact__links {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--s2) var(--s6);
+    margin-top: var(--s6);
+  }
+
+  .contact__links li {
+    min-height: 36px;
+    display: flex;
+    align-items: center;
+  }
+</style>
+
+<script>
+  document.querySelectorAll<HTMLButtonElement>('[data-copy]').forEach((btn) => {
+    const label = btn.querySelector<HTMLElement>('[data-copy-label]')!;
+    btn.addEventListener('click', async () => {
+      try {
+        await navigator.clipboard.writeText(btn.dataset.copy!);
+        label.textContent = 'Copied';
+      } catch {
+        label.textContent = 'Press Ctrl+C';
+        const sel = window.getSelection();
+        const a = btn.previousElementSibling;
+        if (sel && a) {
+          sel.selectAllChildren(a);
+        }
+      }
+      setTimeout(() => (label.textContent = 'Copy'), 2200);
+    });
+  });
+</script>

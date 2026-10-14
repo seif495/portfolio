@@ -1,0 +1,205 @@
+---
+import SectionHead from './SectionHead.astro';
+import { education, fmtRange, languages, recognition } from '../content/experience';
+import { moreWork } from '../content/work';
+
+const thesis = moreWork.find((m) => m.id === 'thesis')!;
+---
+
+<section class="section about" id="about" aria-labelledby="about-title">
+  <div class="wrap">
+    <SectionHead index="04" label="About" title="Education, recognition and languages." id="about-title" />
+
+    <div class="about__grid">
+      <div class="edu" data-reveal>
+        <p class="label">Education</p>
+        <h3 class="edu__school serif">{education.school}</h3>
+        <p class="edu__degree">{education.degree}</p>
+        <dl class="edu__facts">
+          <div>
+            <dt class="label">Dates</dt>
+            <dd>{fmtRange(education.start, education.end)}</dd>
+          </div>
+          <div>
+            <dt class="label">Grade</dt>
+            <dd>{education.grade}</dd>
+          </div>
+        </dl>
+        <div class="edu__thesis" id="thesis">
+          <p class="label">Bachelor thesis · grade {education.thesis.grade}</p>
+          <p class="edu__thesis-title serif">{education.thesis.title}</p>
+          <p class="edu__thesis-text">{thesis.text}</p>
+          <ul class="edu__links">
+            {
+              thesis.links.map((l) => (
+                <li>
+                  <a class="link" href={l.href} target="_blank" rel="noopener">
+                    {l.label} <span class="arrow" aria-hidden="true">↗</span>
+                  </a>
+                </li>
+              ))
+            }
+          </ul>
+        </div>
+      </div>
+
+      <div class="side">
+        <div data-reveal>
+          <p class="label">Recognition</p>
+          <ul class="recog">
+            {
+              recognition.map((r) => (
+                <li>
+                  <p class="recog__when mono">{r.when}</p>
+                  <p class="recog__title">{r.title}</p>
+                  {r.text && <p class="recog__text">{r.text}</p>}
+                </li>
+              ))
+            }
+          </ul>
+        </div>
+        <div data-reveal>
+          <p class="label">Languages</p>
+          <ul class="langs">
+            {
+              languages.map((l) => (
+                <li>
+                  <span class="serif">{l.name}</span>
+                  <span class="mono">{l.level}</span>
+                </li>
+              ))
+            }
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<style>
+  .section {
+    padding-top: clamp(var(--s9), 10vw, var(--s10));
+  }
+
+  .about__grid {
+    display: grid;
+    grid-template-columns: minmax(0, 7fr) minmax(0, 5fr);
+    gap: clamp(var(--s7), 6vw, var(--s9));
+    margin-top: clamp(var(--s7), 6vw, var(--s8));
+  }
+
+  .edu__school {
+    margin-top: var(--s3);
+    font-size: clamp(2rem, 1.5rem + 1.8vw, 3rem);
+    line-height: 1.02;
+  }
+
+  .edu__degree {
+    margin-top: var(--s2);
+    color: var(--bone-2);
+    font-size: var(--fs-lead);
+  }
+
+  .edu__facts {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--s4) var(--s7);
+    margin-top: var(--s5);
+  }
+
+  .edu__facts dd {
+    margin-top: var(--s1);
+  }
+
+  .edu__thesis {
+    scroll-margin-top: calc(var(--header-h) + 24px);
+    margin-top: var(--s6);
+    padding-top: var(--s5);
+    border-top: 1px solid var(--line);
+  }
+
+  .edu__thesis-title {
+    margin-top: var(--s2);
+    font-size: clamp(1.5rem, 1.25rem + 0.9vw, 2rem);
+    line-height: 1.15;
+    max-width: 30ch;
+  }
+
+  .edu__thesis-text {
+    margin-top: var(--s3);
+    color: var(--bone-2);
+    font-size: var(--fs-small);
+    max-width: 60ch;
+  }
+
+  .edu__links {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--s2) var(--s5);
+    margin-top: var(--s3);
+    font-size: var(--fs-small);
+  }
+
+  .edu__links li {
+    min-height: 32px;
+    display: flex;
+    align-items: center;
+  }
+
+  .side {
+    display: grid;
+    gap: var(--s7);
+    align-content: start;
+  }
+
+  .recog,
+  .langs {
+    margin-top: var(--s3);
+    border-top: 1px solid var(--line-2);
+  }
+
+  .recog li {
+    padding: var(--s4) 0;
+    border-bottom: 1px solid var(--line);
+  }
+
+  .recog__when {
+    font-size: 0.8rem;
+    color: var(--bone-3);
+  }
+
+  .recog__title {
+    margin-top: var(--s1);
+    font-size: var(--fs-body);
+    color: var(--bone);
+  }
+
+  .recog__text {
+    margin-top: var(--s1);
+    color: var(--bone-2);
+    font-size: var(--fs-small);
+  }
+
+  .langs li {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    padding: var(--s3) 0;
+    border-bottom: 1px solid var(--line);
+  }
+
+  .langs .serif {
+    font-size: 1.5rem;
+  }
+
+  .langs .mono {
+    color: var(--bone-3);
+    font-size: 0.85rem;
+  }
+
+  @media (max-width: 960px) {
+    .about__grid {
+      grid-template-columns: minmax(0, 1fr);
+    }
+  }
+</style>

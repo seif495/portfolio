@@ -1,0 +1,397 @@
+---
+import CaseHeader from './CaseHeader.astro';
+import { xcv } from '../../content/work';
+
+const { tn, fp, fn, tp } = xcv.confusion;
+const total = tn + fp + fn + tp;
+const pct = (n: number) => `${(n * 100).toFixed(1)}%`;
+const metrics = [
+  { id: 'acc', label: 'Accuracy', value: pct((tn + tp) / total) },
+  { id: 'rec', label: 'Fracture recall', value: pct(tp / (tp + fn)) },
+  { id: 'prec', label: 'Fracture precision', value: pct(tp / (tp + fp)) },
+  { id: 'auc', label: 'ROC AUC', value: xcv.auc.toFixed(3) },
+];
+const maxCell = Math.max(tn, fp, fn, tp);
+const cells = [
+  { id: 'tn', n: tn, row: 'Not fractured', col: 'Cleared', rel: 'acc', text: `${tn} healthy X-rays correctly cleared.` },
+  { id: 'fp', n: fp, row: 'Not fractured', col: 'Flagged', rel: 'prec', text: `${fp} healthy X-rays flagged as fractured: false alarms, which lower precision.` },
+  { id: 'fn', n: fn, row: 'Fractured', col: 'Cleared', rel: 'rec', text: `${fn} fractures missed. The costliest error in this setting, and what recall measures.` },
+  { id: 'tp', n: tp, row: 'Fractured', col: 'Flagged', rel: 'rec', text: `${tp} fractures caught, out of ${tp + fn} in the test set.` },
+];
+---
+
+<article class="case" id="xcv" aria-labelledby="xcv-title">
+  <CaseHeader {...xcv} />
+
+  <ol class="flow" aria-label="X-CV pipeline" data-reveal>
+    <li class="flow__start"><span class="label">Input</span><span>X-ray upload</span></li>
+    {
+      xcv.stages.map((s, i) => (
+        <li class:list={['flow__stage', { 'is-mine': s.mine, 'is-conditional': s.id === 'boxes' }]}>
+          <span class="label">
+            {String(i + 1).padStart(2, '0')}
+            {s.mine && <span class="flow__mine">My module</span>}
+          </span>
+          <span class="flow__name">{s.label}</span>
+          <span class="flow__note">{s.note}</span>
+        </li>
+      ))
+    }
+  </ol>
+  <p class="flow__caption" data-reveal>Each stage streams its result to the React UI over a WebSocket as soon as it finishes.</p>
+
+  <div class="xcv-body">
+    <div data-reveal>
+      <p class="case-lead">{xcv.contribution}</p>
+      <p class="xcv-caveat"><span class="label">Note</span>{xcv.caveat}</p>
+    </div>
+
+    <section class="instrument cm" aria-labelledby="cm-title" data-cm data-reveal>
+      <div class="instrument__bar">
+        <span><strong id="cm-title">Held-out test set</strong></span>
+        <span>{total} X-rays · DenseNet-121</span>
+      </div>
+      <div class="cm__body">
+        <div class="cm__grid" role="group" aria-label="Confusion matrix. Rows: actual class. Columns: model decision.">
+          <span class="cm__corner label" aria-hidden="true">Actual ↓ / Model →</span>
+          <span class="cm__colhead label" aria-hidden="true">Cleared</span>
+          <span class="cm__colhead label" aria-hidden="true">Flagged</span>
+          <span class="cm__rowhead label" aria-hidden="true">Not fractured</span>
+          {
+            cells.slice(0, 2).map((c) => (
+              <button
+                type="button"
+                class={`cm__cell cm__cell--${c.id}`}
+                style={`--a:${(0.12 + 0.6 * (c.n / maxCell)).toFixed(2)}`}
+                data-cell={c.id}
+                data-rel={c.rel}
+                data-text={c.text}
+                aria-label={`Actual ${c.row}, model ${c.col}: ${c.n}`}
+              >
+                <span class="serif">{c.n}</span>
+              </button>
+            ))
+          }
+          <span class="cm__rowhead label" aria-hidden="true">Fractured</span>
+          {
+            cells.slice(2).map((c) => (
+              <button
+                type="button"
+                class={`cm__cell cm__cell--${c.id}`}
+                style={`--a:${(0.12 + 0.6 * (c.n / maxCell)).toFixed(2)}`}
+                data-cell={c.id}
+                data-rel={c.rel}
+                data-text={c.text}
+                aria-label={`Actual ${c.row}, model ${c.col}: ${c.n}`}
+              >
+                <span class="serif">{c.n}</span>
+              </button>
+            ))
+          }
+        </div>
+        <p class="cm__explain" data-cm-text aria-live="polite">Hover, tap or focus a cell to read it.</p>
+      </div>
+      <dl class="cm__metrics">
+        {
+          metrics.map((m) => (
+            <div data-metric={m.id}>
+              <dt class="label">{m.label}</dt>
+              <dd class="serif">{m.value}</dd>
+            </div>
+          ))
+        }
+      </dl>
+    </section>
+  </div>
+</article>
+
+<style>
+  .flow {
+    display: grid;
+    grid-template-columns: 0.8fr repeat(4, minmax(0, 1fr));
+    margin-top: var(--s7);
+    border: 1px solid var(--line-2);
+  }
+
+  .flow li {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    gap: var(--s1);
+    padding: var(--s4);
+    border-right: 1px solid var(--line-2);
+    background: var(--ink-1);
+  }
+
+  .flow li:last-child {
+    border-right: 0;
+  }
+
+  .flow li + li::before {
+    content: '';
+    position: absolute;
+    left: -6px;
+    top: 50%;
+    width: 10px;
+    height: 10px;
+    margin-top: -5px;
+    border-top: 1px solid var(--line-3);
+    border-right: 1px solid var(--line-3);
+    background: var(--ink-1);
+    transform: rotate(45deg);
+  }
+
+  .flow__start {
+    justify-content: center;
+    color: var(--bone-2);
+    font-size: var(--fs-small);
+    background: var(--ink-0) !important;
+  }
+
+  .flow__name {
+    font-family: var(--serif);
+    font-size: 1.35rem;
+    line-height: 1.15;
+  }
+
+  .flow__note {
+    color: var(--bone-3);
+    font-size: 0.8125rem;
+  }
+
+  .flow li.is-mine {
+    background: rgb(255 91 55 / 0.08);
+    box-shadow: inset 0 0 0 1px var(--signal);
+  }
+
+  .flow li.is-mine::before {
+    border-color: var(--signal);
+  }
+
+  .flow__mine {
+    margin-left: 0.8em;
+    color: var(--signal);
+  }
+
+  .flow li.is-conditional {
+    background-image: repeating-linear-gradient(
+      -45deg,
+      transparent 0 6px,
+      rgb(236 232 225 / 0.025) 6px 7px
+    );
+  }
+
+  .flow__caption {
+    margin-top: var(--s3);
+    color: var(--bone-3);
+    font-size: 0.875rem;
+  }
+
+  .xcv-body {
+    display: grid;
+    grid-template-columns: minmax(0, 6fr) minmax(0, 6fr);
+    gap: clamp(var(--s6), 5vw, var(--s9));
+    margin-top: var(--s7);
+    align-items: start;
+  }
+
+  .xcv-caveat {
+    display: flex;
+    gap: var(--s3);
+    align-items: baseline;
+    margin-top: var(--s5);
+    padding-top: var(--s4);
+    border-top: 1px solid var(--line);
+    color: var(--bone-3);
+    font-size: 0.875rem;
+  }
+
+  /* ---------- Confusion matrix ---------- */
+  .cm__body {
+    padding: var(--s4);
+  }
+
+  .cm__grid {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr) minmax(0, 1fr);
+    gap: 4px;
+    align-items: center;
+  }
+
+  .cm__corner {
+    font-size: 0.62rem;
+    color: var(--bone-4);
+  }
+
+  .cm__colhead {
+    text-align: center;
+    padding-bottom: var(--s1);
+  }
+
+  .cm__rowhead {
+    padding-right: var(--s3);
+    text-align: right;
+  }
+
+  .cm__cell {
+    aspect-ratio: 16 / 9;
+    min-height: 64px;
+    border: 1px solid var(--line-2);
+    background: rgb(236 232 225 / var(--a));
+    color: var(--ink-0);
+    transition:
+      outline-color var(--t-fast) var(--ease-out),
+      transform var(--t-fast) var(--ease-out);
+  }
+
+  .cm__cell--fp,
+  .cm__cell--fn {
+    background: rgb(255 91 55 / var(--a));
+    color: var(--bone);
+  }
+
+  .cm__cell--fp {
+    --a: 0.22 !important;
+  }
+
+  .cm__cell--fn {
+    --a: 0.2 !important;
+  }
+
+  .cm__cell span {
+    font-size: clamp(1.8rem, 1.4rem + 1.4vw, 2.6rem);
+    line-height: 1;
+  }
+
+  .cm__cell:hover,
+  .cm__cell.is-active {
+    outline: 2px solid var(--bone);
+    outline-offset: -2px;
+  }
+
+  .cm__explain {
+    min-height: 3.2em;
+    margin-top: var(--s4);
+    color: var(--bone-2);
+    font-size: var(--fs-small);
+  }
+
+  .cm__metrics {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    border-top: 1px solid var(--line);
+  }
+
+  .cm__metrics div {
+    padding: var(--s3) var(--s4);
+    border-right: 1px solid var(--line);
+    transition: background var(--t-fast) var(--ease-out);
+  }
+
+  .cm__metrics div:last-child {
+    border-right: 0;
+  }
+
+  .cm__metrics div.is-active {
+    background: var(--ink-3);
+  }
+
+  .cm__metrics div.is-active dd {
+    color: var(--signal);
+  }
+
+  .cm__metrics dt {
+    font-size: 0.64rem;
+  }
+
+  .cm__metrics dd {
+    margin-top: var(--s1);
+    font-size: 1.6rem;
+    line-height: 1.1;
+  }
+
+  @media (max-width: 1080px) {
+    .flow {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .flow li {
+      border-bottom: 1px solid var(--line-2);
+    }
+
+    .flow li + li::before {
+      display: none;
+    }
+
+    .flow__start {
+      grid-column: 1 / -1;
+    }
+
+    .xcv-body {
+      grid-template-columns: minmax(0, 1fr);
+    }
+  }
+
+  @media (max-width: 560px) {
+    .flow {
+      grid-template-columns: minmax(0, 1fr);
+    }
+
+    .flow li {
+      border-right: 0;
+    }
+
+    .cm__metrics {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .cm__metrics div:nth-child(2) {
+      border-right: 0;
+    }
+
+    .cm__metrics div:nth-child(-n + 2) {
+      border-bottom: 1px solid var(--line);
+    }
+
+    .cm__body {
+      padding: var(--s3);
+    }
+
+    .cm__cell {
+      aspect-ratio: auto;
+      height: 68px;
+      min-height: 0;
+    }
+
+    .cm__corner {
+      font-size: 0.56rem;
+    }
+
+    .cm__rowhead {
+      font-size: 0.62rem;
+      padding-right: var(--s2);
+    }
+  }
+</style>
+
+<script>
+  document.querySelectorAll<HTMLElement>('[data-cm]').forEach((root) => {
+    const cells = [...root.querySelectorAll<HTMLButtonElement>('[data-cell]')];
+    const text = root.querySelector<HTMLElement>('[data-cm-text]')!;
+    const metrics = [...root.querySelectorAll<HTMLElement>('[data-metric]')];
+    const initial = text.textContent;
+    const show = (c: HTMLButtonElement | null) => {
+      cells.forEach((x) => x.classList.toggle('is-active', x === c));
+      metrics.forEach((m) => m.classList.toggle('is-active', Boolean(c) && m.dataset.metric === c!.dataset.rel));
+      text.textContent = c ? c.dataset.text! : initial;
+    };
+    cells.forEach((c) => {
+      c.addEventListener('pointerenter', () => show(c));
+      c.addEventListener('focus', () => show(c));
+      c.addEventListener('click', () => show(c));
+    });
+    root.querySelector('.cm__grid')!.addEventListener('pointerleave', () => {
+      if (!root.contains(document.activeElement) || !cells.includes(document.activeElement as HTMLButtonElement)) show(null);
+    });
+  });
+</script>

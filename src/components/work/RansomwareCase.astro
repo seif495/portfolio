@@ -1,0 +1,571 @@
+---
+import CaseHeader from './CaseHeader.astro';
+import { ransomware } from '../../content/work';
+import { WIDE, renderChart, simulate, type LabState } from '../../lib/baseline-lab';
+
+const initial: LabState = { scenario: 'burst', noise: 'medium', seed: 3, rebaseline: false };
+const res = simulate(initial);
+const chart = renderChart(res, WIDE);
+
+const scenarios = [
+  { id: 'clean', label: 'Clean' },
+  { id: 'burst', label: 'Encryption burst' },
+  { id: 'subtle', label: 'Subtle rise' },
+  { id: 'growth', label: 'Legit growth' },
+];
+const noises = [
+  { id: 'low', label: 'Low' },
+  { id: 'medium', label: 'Medium' },
+  { id: 'high', label: 'High' },
+];
+---
+
+<article class="case" id="ransomware" aria-labelledby="ransomware-title">
+  <CaseHeader {...ransomware}>
+    <div slot="meta" class="private-note">
+      <dt class="label">Code</dt>
+      <dd>Private for now; a walkthrough is available on request.</dd>
+    </div>
+  </CaseHeader>
+
+  <div class="rd-intro" data-reveal>
+    <p class="case-lead">{ransomware.summary}</p>
+    <figure class="formula">
+      <p class="label">How one snapshot is scored</p>
+      <p class="formula__eq mono">
+        z = 0.6745 · (x − median) / max(MAD, 3% · median)
+      </p>
+      <p class="formula__eq mono">alert if max |z| ≥ 3.5 + 20 / n</p>
+      <figcaption>
+        Per feature (changed files, size, change ratio), against the last <em>n</em> ≤ 100 normal snapshots of the same
+        backup set. The <em>20 / n</em> term makes young baselines more cautious; nothing is scored until 10 snapshots
+        exist.
+      </figcaption>
+    </figure>
+  </div>
+
+  <section class="instrument lab" aria-labelledby="lab-title" data-lab data-reveal>
+    <div class="instrument__bar">
+      <span><span class="dot dot--live" aria-hidden="true"></span>&ensp;<strong id="lab-title">Baseline lab</strong></span>
+      <span>Simulated in your browser · detector’s scoring rule</span>
+    </div>
+
+    <div class="lab__controls">
+      <div class="lab__group">
+        <span class="label" id="lab-scn">Scenario</span>
+        <div class="seg" role="group" aria-labelledby="lab-scn">
+          {
+            scenarios.map((s) => (
+              <button type="button" data-scenario={s.id} aria-pressed={s.id === initial.scenario ? 'true' : 'false'}>
+                {s.label}
+              </button>
+            ))
+          }
+        </div>
+      </div>
+      <div class="lab__group">
+        <span class="label" id="lab-noise">Backup noise</span>
+        <div class="seg" role="group" aria-labelledby="lab-noise">
+          {
+            noises.map((n) => (
+              <button type="button" data-noise={n.id} aria-pressed={n.id === initial.noise ? 'true' : 'false'}>
+                {n.label}
+              </button>
+            ))
+          }
+        </div>
+      </div>
+      <div class="lab__group lab__group--end">
+        <label class="lab__check" data-rebaseline-wrap hidden>
+          <input type="checkbox" data-rebaseline />
+          <span>Operator re-baseline</span>
+        </label>
+        <button type="button" class="btn lab__seed" data-reseed>New series</button>
+      </div>
+    </div>
+
+    <p class="lab__scenario" data-lab-note aria-live="polite"></p>
+
+    <div class="lab__chart">
+      <p class="lab__ylab label" aria-hidden="true">Changed files per backup · log scale</p>
+      <svg viewBox={`0 0 ${WIDE.w} ${WIDE.h}`} class="lab__svg" role="img" aria-labelledby="lab-title" aria-describedby="lab-stats" data-lab-svg>
+        <g data-lab-layer set:html={chart} />
+        <g class="lab-cursor" data-lab-cursor aria-hidden="true">
+          <line y1={WIDE.t} y2={WIDE.h - WIDE.b} />
+        </g>
+      </svg>
+    </div>
+
+    <div class="lab__readout">
+      <p class="lab__stats" id="lab-stats" data-lab-stats aria-live="polite"></p>
+      <div class="lab__inspect">
+        <label class="label" for="lab-day">Inspect a backup</label>
+        <input type="range" id="lab-day" min="1" max="120" value="85" data-lab-day />
+        <p class="lab__day mono" data-lab-detail aria-live="polite"></p>
+      </div>
+    </div>
+
+    <div class="lab__legend">
+      <span><i class="lg lg--pt"></i>Backup</span>
+      <span><i class="lg lg--flag"></i>Alert</span>
+      <span><i class="lg lg--miss"></i>Missed attack</span>
+      <span><i class="lg lg--band"></i>Normal range (median ± threshold)</span>
+    </div>
+    <p class="lab__foot">
+      Synthetic series shaped like the project’s evaluation harness: 120 daily backups, log-normal noise around
+      2,000 changed files and 80 GiB. Two of the detector’s three features are modeled here.
+    </p>
+  </section>
+
+  <div class="rd-findings">
+    <div data-reveal>
+      <p class="label">Evaluation, and where it is blind</p>
+      <p class="rd-eval-setup">{ransomware.evaluation.setup}</p>
+      <dl class="verdicts">
+        <div>
+          <dt class="verdict verdict--ok">Strong</dt>
+          <dd>{ransomware.evaluation.strong}</dd>
+        </div>
+        <div>
+          <dt class="verdict">Noise</dt>
+          <dd>{ransomware.evaluation.noise}</dd>
+        </div>
+        <div>
+          <dt class="verdict verdict--bad">Blind spots</dt>
+          <dd>
+            <ul class="limits">
+              {ransomware.limits.map((l) => <li>{l}</li>)}
+            </ul>
+          </dd>
+        </div>
+      </dl>
+    </div>
+    <div data-reveal>
+      <p class="label">Engineering</p>
+      <dl class="kv rd-kv">
+        {
+          ransomware.engineering.map((e) => (
+            <div>
+              <dt>{e.k}</dt>
+              <dd>{e.v}</dd>
+            </div>
+          ))
+        }
+      </dl>
+      <p class="rd-origins">{ransomware.origins}</p>
+    </div>
+  </div>
+</article>
+
+<style>
+  .rd-intro {
+    display: grid;
+    grid-template-columns: minmax(0, 7fr) minmax(0, 5fr);
+    gap: clamp(var(--s6), 5vw, var(--s9));
+    margin-top: var(--s7);
+    align-items: start;
+  }
+
+  .private-note {
+    margin-top: var(--s1);
+  }
+
+  .private-note dd {
+    color: var(--bone-2) !important;
+  }
+
+  .formula {
+    margin: 0;
+    padding-top: var(--s4);
+    border-top: 1px solid var(--line-2);
+  }
+
+  .formula__eq {
+    margin-top: var(--s3);
+    padding: var(--s3) var(--s4);
+    border-left: 2px solid var(--signal);
+    background: var(--ink-1);
+    font-size: 0.875rem;
+    color: var(--bone);
+    overflow-x: auto;
+    white-space: nowrap;
+  }
+
+  .formula figcaption {
+    margin-top: var(--s4);
+    color: var(--bone-3);
+    font-size: 0.875rem;
+  }
+
+  /* ---------- Lab ---------- */
+  .lab {
+    margin-top: var(--s7);
+  }
+
+  .lab__controls {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--s4) var(--s6);
+    align-items: flex-end;
+    padding: var(--s4);
+    border-bottom: 1px solid var(--line);
+  }
+
+  .lab__group {
+    display: flex;
+    flex-direction: column;
+    gap: var(--s2);
+  }
+
+  .lab__group--end {
+    flex-direction: row;
+    align-items: center;
+    gap: var(--s4);
+    margin-left: auto;
+  }
+
+  .lab__check {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.55em;
+    min-height: 36px;
+    font-size: var(--fs-small);
+    color: var(--bone-2);
+    cursor: pointer;
+  }
+
+  .lab__check input {
+    width: 16px;
+    height: 16px;
+    accent-color: var(--signal);
+  }
+
+  .lab__check[hidden] {
+    display: none;
+  }
+
+  .lab__seed {
+    min-height: 36px;
+  }
+
+  .lab__scenario {
+    padding: var(--s4) var(--s4) 0;
+    max-width: 80ch;
+    color: var(--bone);
+    font-size: var(--fs-small);
+    min-height: 3.6em;
+  }
+
+  .lab__chart {
+    position: relative;
+    padding: var(--s3) var(--s4) 0;
+  }
+
+  .lab__svg {
+    width: 100%;
+    height: auto;
+    overflow: visible;
+    touch-action: pan-y;
+  }
+
+  .lab__ylab {
+    margin-bottom: var(--s2);
+    font-size: 0.68rem;
+  }
+
+  .lab__svg :global(.lab-grid) {
+    stroke: var(--line);
+    stroke-dasharray: 2 4;
+  }
+
+  .lab__svg :global(.lab-axis) {
+    fill: var(--bone-4);
+    font-family: var(--mono);
+    font-size: 11px;
+  }
+
+  .lab__svg :global(.lab-warm) {
+    fill: rgb(236 232 225 / 0.035);
+  }
+
+  .lab__svg :global(.lab-note) {
+    fill: var(--bone-3);
+    font-family: var(--mono);
+    font-size: 10.5px;
+    letter-spacing: 0.04em;
+  }
+
+  .lab__svg :global(.lab-band) {
+    fill: rgb(134 175 194 / 0.17);
+  }
+
+  .lab__svg :global(.lab-median) {
+    fill: none;
+    stroke: var(--steel);
+    stroke-width: 1.2;
+  }
+
+  .lab__svg :global(.lab-marker) {
+    stroke: var(--bone-3);
+    stroke-dasharray: 3 3;
+  }
+
+  .lab__svg :global(.lab-marker.is-attack) {
+    stroke: var(--signal);
+  }
+
+  .lab__svg :global(.lab-note.is-attack) {
+    fill: var(--signal);
+  }
+
+  .lab__svg :global(.lab-marker.is-op),
+  .lab__svg :global(.lab-note.is-op) {
+    stroke: var(--sand);
+    fill: var(--sand);
+  }
+
+  .lab__svg :global(.lab-marker.is-op) {
+    fill: none;
+  }
+
+  .lab__svg :global(.pt) {
+    fill: var(--bone-2);
+  }
+
+  .lab__svg :global(.pt--cal) {
+    fill: var(--bone-4);
+  }
+
+  .lab__svg :global(.pt--flag) {
+    fill: var(--signal);
+  }
+
+  .lab__svg :global(.pt--medium) {
+    fill: #ff9a7f;
+  }
+
+  .lab__svg :global(.pt.is-inspected) {
+    stroke: var(--bone);
+    stroke-width: 2;
+  }
+
+  .lab__svg :global(.pt--miss) {
+    fill: var(--ink-1);
+    stroke: var(--signal);
+    stroke-width: 1.5;
+  }
+
+  .lab__svg.is-narrow :global(.lab-axis) {
+    font-size: 14px;
+  }
+
+  .lab__svg.is-narrow :global(.lab-note) {
+    font-size: 13px;
+  }
+
+  .lab-cursor line {
+    stroke: var(--bone);
+    stroke-width: 1;
+    opacity: 0.5;
+  }
+
+  .lab__readout {
+    display: grid;
+    grid-template-columns: minmax(0, 5fr) minmax(0, 7fr);
+    gap: var(--s5);
+    padding: var(--s4);
+    border-top: 1px solid var(--line);
+    margin-top: var(--s3);
+  }
+
+  .lab__stats {
+    font-size: var(--fs-small);
+    color: var(--bone-2);
+  }
+
+  .lab__stats :global(b) {
+    color: var(--bone);
+    font-weight: 500;
+  }
+
+  .lab__stats :global(.hit) {
+    color: var(--signal);
+  }
+
+  .lab__inspect {
+    display: grid;
+    gap: var(--s2);
+  }
+
+  .lab__inspect input[type='range'] {
+    width: 100%;
+    accent-color: var(--signal);
+    min-height: 28px;
+  }
+
+  .lab__day {
+    font-size: 0.8rem;
+    color: var(--bone-2);
+    line-height: 1.6;
+  }
+
+  .lab__day :global(.flag) {
+    color: var(--signal);
+  }
+
+  .lab__legend {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--s2) var(--s5);
+    padding: var(--s3) var(--s4);
+    border-top: 1px solid var(--line);
+    color: var(--bone-3);
+    font-size: 0.8125rem;
+  }
+
+  .lab__legend span {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .lg {
+    display: inline-block;
+    width: 9px;
+    height: 9px;
+    border-radius: 50%;
+  }
+
+  .lg--pt {
+    background: var(--bone-2);
+    width: 6px;
+    height: 6px;
+  }
+
+  .lg--flag {
+    background: var(--signal);
+  }
+
+  .lg--miss {
+    border: 1.5px solid var(--signal);
+  }
+
+  .lg--band {
+    width: 18px;
+    height: 9px;
+    border-radius: 0;
+    background: var(--steel-soft);
+    border-top: 1px solid var(--steel);
+  }
+
+  .lab__foot {
+    padding: var(--s3) var(--s4);
+    border-top: 1px solid var(--line);
+    color: var(--bone-3);
+    font-size: 0.8125rem;
+  }
+
+  /* ---------- Findings ---------- */
+  .rd-findings {
+    display: grid;
+    grid-template-columns: minmax(0, 6fr) minmax(0, 6fr);
+    gap: clamp(var(--s6), 4vw, var(--s8));
+    margin-top: var(--s8);
+  }
+
+  .rd-eval-setup {
+    margin-top: var(--s4);
+    color: var(--bone-2);
+    font-size: var(--fs-small);
+  }
+
+  .verdicts {
+    margin-top: var(--s5);
+    border-top: 1px solid var(--line);
+  }
+
+  .verdicts > div {
+    display: grid;
+    grid-template-columns: 7.5rem minmax(0, 1fr);
+    gap: var(--s4);
+    padding: var(--s4) 0;
+    border-bottom: 1px solid var(--line);
+  }
+
+  .verdict {
+    font-family: var(--mono);
+    font-size: var(--fs-micro);
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--bone-3);
+    padding-top: 0.25em;
+  }
+
+  .verdict--ok {
+    color: var(--steel);
+  }
+
+  .verdict--bad {
+    color: var(--signal);
+  }
+
+  .verdicts dd {
+    color: var(--bone-2);
+    font-size: var(--fs-small);
+  }
+
+  .rd-kv {
+    margin-top: var(--s4);
+  }
+
+  .rd-origins {
+    margin-top: var(--s5);
+    color: var(--bone-3);
+    font-size: 0.875rem;
+  }
+
+  @media (max-width: 960px) {
+    .rd-intro,
+    .rd-findings,
+    .lab__readout {
+      grid-template-columns: minmax(0, 1fr);
+    }
+
+    .lab__group--end {
+      margin-left: 0;
+    }
+  }
+
+  @media (max-width: 640px) {
+    .lab__controls,
+    .lab__scenario,
+    .lab__readout,
+    .lab__legend,
+    .lab__foot {
+      padding-inline: var(--s3);
+    }
+
+    .lab__chart {
+      padding-inline: 0;
+    }
+
+    .formula__eq {
+      white-space: normal;
+      font-size: 0.8rem;
+    }
+
+    .lab__ylab {
+      padding-left: var(--s3);
+    }
+
+    .verdicts > div {
+      grid-template-columns: minmax(0, 1fr);
+      gap: var(--s2);
+    }
+  }
+</style>
+
+<script>
+  import { initLab } from '../../scripts/lab';
+  document.querySelectorAll<HTMLElement>('[data-lab]').forEach(initLab);
+</script>

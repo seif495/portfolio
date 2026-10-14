@@ -1,0 +1,300 @@
+---
+import { edgePath, type GNode, type Layout } from '../content/graph';
+
+interface Props {
+  layout: Layout;
+  variant: 'wide' | 'narrow';
+}
+
+const { layout, variant } = Astro.props;
+const byId = new Map(layout.nodes.map((n) => [n.id, n]));
+
+const typeName: Record<GNode['type'], string> = {
+  discipline: 'discipline',
+  project: 'project',
+  research: 'research',
+  role: 'role',
+  tech: 'tool',
+};
+
+// Keyboard order: work first, then disciplines, then tools, each top to bottom.
+const rank = { project: 0, research: 0, role: 0, discipline: 1, tech: 2 } as const;
+const order = [...layout.nodes].sort((a, b) => rank[a.type] - rank[b.type] || a.y - b.y).map((n) => n.id);
+
+const isWork = (n: GNode) => n.type === 'project' || n.type === 'research' || n.type === 'role';
+const delay = (n: GNode) => (n.type === 'tech' ? 0 : isWork(n) ? 260 : 520) + Math.round(n.y * 0.35);
+---
+
+<svg
+  class={`graph__svg graph__svg--${variant}`}
+  viewBox={`0 0 ${layout.w} ${layout.h}`}
+  role="group"
+  aria-label="Graph of the tools, work and disciplines on this page. Arrow keys move between nodes; Enter opens a project."
+  data-graph-svg
+  data-order={order.join(',')}
+>
+  <g class="graph__cols" aria-hidden="true">
+    {
+      layout.columns.map((c) => (
+        <text class="col-label" x={c.x} y="24" text-anchor={c.anchor}>
+          {c.label}
+        </text>
+      ))
+    }
+  </g>
+
+  <g class="graph__edges" aria-hidden="true">
+    {
+      layout.edges.map((e) => {
+        const a = byId.get(e.source)!;
+        const b = byId.get(e.target)!;
+        return (
+          <path
+            class={`edge edge--${e.rel.toLowerCase()}`}
+            d={edgePath(a, b)}
+            pathLength="1"
+            data-s={e.source}
+            data-t={e.target}
+            style={`--d:${delay(a) + 120}ms`}
+          />
+        );
+      })
+    }
+  </g>
+
+  <g class="graph__pulses" data-pulses aria-hidden="true"></g>
+
+  <g class="graph__nodes">
+    {
+      layout.nodes.map((n) => (
+        <g
+          class={`node node--${n.type}`}
+          data-id={n.id}
+          tabindex={n.id === order[0] ? 0 : -1}
+          role="button"
+          aria-label={`${n.label}, ${typeName[n.type]}${n.href ? '. Press Enter to open.' : ''}`}
+          style={`--d:${delay(n)}ms`}
+        >
+          {n.type === 'tech' && (
+            <>
+              <rect class="node__hit" x={n.x - 112} y={n.y - 12} width="122" height="24" />
+              <circle class="node__mark" cx={n.x} cy={n.y} r="3" />
+              <text class="node__label" x={n.x - 11} y={n.y} text-anchor="end" dominant-baseline="central">
+                {n.label}
+              </text>
+            </>
+          )}
+          {isWork(n) && (
+            <>
+              <rect class="node__pill" x={n.x - n.hw} y={n.y - 15} width={n.hw * 2} height="30" />
+              <text class="node__label" x={n.x} y={n.y + 0.5} text-anchor="middle" dominant-baseline="central">
+                {n.label}
+              </text>
+            </>
+          )}
+          {n.type === 'discipline' && (
+            <>
+              <rect class="node__hit" x={n.x - 10} y={n.y - 12} width="150" height="24" />
+              <rect
+                class="node__mark"
+                x={n.x - 4.5}
+                y={n.y - 4.5}
+                width="9"
+                height="9"
+                transform={`rotate(45 ${n.x} ${n.y})`}
+              />
+              <text class="node__label" x={n.x + 13} y={n.y} dominant-baseline="central">
+                {n.label}
+              </text>
+            </>
+          )}
+        </g>
+      ))
+    }
+  </g>
+</svg>
+
+<style>
+  .graph__svg {
+    width: 100%;
+    height: auto;
+    overflow: visible;
+    user-select: none;
+    -webkit-user-select: none;
+    touch-action: manipulation;
+  }
+
+  .col-label {
+    font-family: var(--mono);
+    font-size: 10px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    fill: var(--bone-4);
+  }
+
+  .edge {
+    fill: none;
+    stroke: var(--line-3);
+    stroke-width: 1;
+    transition:
+      stroke var(--t-fast) var(--ease-out),
+      opacity var(--t-fast) var(--ease-out);
+  }
+
+  .edge--in {
+    stroke: rgb(205 185 141 / 0.32);
+  }
+
+  .node {
+    cursor: pointer;
+    outline: none;
+    transition: opacity var(--t-fast) var(--ease-out);
+  }
+
+  .node__hit {
+    fill: transparent;
+  }
+
+  .node__mark,
+  .node__pill {
+    transition:
+      fill var(--t-fast) var(--ease-out),
+      stroke var(--t-fast) var(--ease-out);
+  }
+
+  .node--tech .node__mark {
+    fill: var(--bone-3);
+  }
+
+  .node--tech .node__label {
+    font-family: var(--mono);
+    font-size: 11px;
+    fill: var(--bone-2);
+  }
+
+  .node__pill {
+    fill: var(--ink-1);
+    stroke: var(--line-3);
+    stroke-width: 1;
+  }
+
+  .node--project .node__label,
+  .node--research .node__label {
+    font-family: var(--serif);
+    font-size: 18px;
+    fill: var(--bone);
+  }
+
+  .node--research .node__label {
+    font-style: italic;
+  }
+
+  .node--role .node__pill {
+    stroke: rgb(134 175 194 / 0.45);
+    stroke-dasharray: 3 3;
+  }
+
+  .node--role .node__label {
+    font-family: var(--sans);
+    font-size: 13.5px;
+    fill: var(--steel);
+  }
+
+  .node--discipline .node__mark {
+    fill: var(--sand);
+  }
+
+  .node--discipline .node__label {
+    font-family: var(--mono);
+    font-size: 10.5px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    fill: var(--sand);
+  }
+
+  .node__label {
+    pointer-events: none;
+    transition: fill var(--t-fast) var(--ease-out);
+  }
+
+  .node:hover .node__pill {
+    stroke: var(--bone-2);
+  }
+
+  /* Focus state: dim everything, light the neighbourhood. */
+  .graph__svg.is-focused .edge,
+  .graph__svg.is-focused .node {
+    opacity: 0.18;
+  }
+
+  .graph__svg.is-focused .edge.is-lit {
+    opacity: 1;
+    stroke: var(--signal);
+  }
+
+  .graph__svg.is-focused .node.is-lit {
+    opacity: 1;
+  }
+
+  .graph__svg .node.is-current .node__pill {
+    stroke: var(--signal);
+    fill: rgb(255 91 55 / 0.1);
+  }
+
+  .graph__svg .node.is-current .node__mark {
+    fill: var(--signal);
+  }
+
+  .graph__svg .node.is-current.node--tech .node__label,
+  .graph__svg .node.is-current.node--discipline .node__label {
+    fill: var(--signal);
+  }
+
+  .node:focus-visible .node__pill,
+  .node:focus-visible .node__hit {
+    stroke: var(--signal);
+    stroke-width: 1.5;
+    stroke-dasharray: 3 3;
+  }
+
+  .graph__svg :global(.pulse) {
+    fill: var(--signal);
+  }
+
+  @media (prefers-reduced-motion: no-preference) {
+    :global(.js) .edge {
+      stroke-dasharray: 1;
+      stroke-dashoffset: 1;
+      animation: draw 1000ms var(--ease-out) var(--d) forwards;
+    }
+
+    :global(.js) .node {
+      animation: settle 500ms var(--ease-out) var(--d) both;
+    }
+  }
+
+  @keyframes draw {
+    to {
+      stroke-dashoffset: 0;
+    }
+  }
+
+  @keyframes settle {
+    from {
+      opacity: 0;
+    }
+  }
+
+  .graph__svg--narrow .node--tech .node__label {
+    font-size: 12px;
+  }
+
+  .graph__svg--narrow .node--project .node__label,
+  .graph__svg--narrow .node--research .node__label {
+    font-size: 17px;
+  }
+
+  .graph__svg--narrow .node--role .node__label {
+    font-size: 13px;
+  }
+</style>

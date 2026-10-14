@@ -1,0 +1,298 @@
+---
+import { nav, profile } from '../content/profile';
+---
+
+<header class="site-header" data-header>
+  <div class="wrap site-header__inner">
+    <a class="wordmark" href="#top">
+      <span class="wordmark__name serif">{profile.name}</span>
+      <span class="wordmark__role label">{profile.role}</span>
+    </a>
+
+    <nav class="nav" aria-label="Primary">
+      <ul class="nav__list" id="nav-list" data-nav-list>
+        {
+          nav.map((item) => (
+            <li>
+              <a class="nav__link" href={item.href} data-spy={item.href.slice(1)}>
+                {item.label}
+              </a>
+            </li>
+          ))
+        }
+        <li class="nav__resume-item">
+          <a class="btn nav__resume" href={profile.links.resume} target="_blank" rel="noopener">
+            Résumé <span aria-hidden="true">↗</span>
+          </a>
+        </li>
+      </ul>
+      <button
+        class="nav__toggle"
+        type="button"
+        aria-expanded="false"
+        aria-controls="nav-list"
+        data-nav-toggle
+      >
+        <span class="nav__toggle-text">Menu</span>
+        <span class="nav__toggle-icon" aria-hidden="true"><i></i><i></i></span>
+      </button>
+    </nav>
+  </div>
+</header>
+
+<style>
+  .site-header {
+    position: sticky;
+    top: 0;
+    z-index: 50;
+    height: var(--header-h);
+    border-bottom: 1px solid transparent;
+    transition:
+      background var(--t-med) var(--ease-out),
+      border-color var(--t-med) var(--ease-out);
+  }
+
+  .site-header.is-scrolled,
+  .site-header.is-open {
+    background: rgb(10 12 15 / 0.86);
+    border-bottom-color: var(--line);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+  }
+
+  .site-header__inner {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    height: 100%;
+    gap: var(--s5);
+  }
+
+  .wordmark {
+    display: flex;
+    align-items: baseline;
+    gap: var(--s3);
+    white-space: nowrap;
+  }
+
+  .wordmark__name {
+    font-size: 1.45rem;
+    line-height: 1;
+    letter-spacing: 0.005em;
+  }
+
+  .wordmark__role {
+    font-size: 0.68rem;
+  }
+
+  .nav__list {
+    display: flex;
+    align-items: center;
+    gap: var(--s1);
+  }
+
+  .nav__link {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    min-height: 44px;
+    padding: 0 0.8em;
+    color: var(--bone-3);
+    font-size: 0.9rem;
+    transition: color var(--t-fast) var(--ease-out);
+  }
+
+  .nav__link::before {
+    content: '';
+    position: absolute;
+    left: 50%;
+    bottom: 9px;
+    width: 4px;
+    height: 4px;
+    margin-left: -2px;
+    border-radius: 50%;
+    background: var(--signal);
+    transform: scale(0);
+    transition: transform var(--t-med) var(--ease-out);
+  }
+
+  .nav__link:hover,
+  .nav__link.is-active {
+    color: var(--bone);
+  }
+
+  .nav__link.is-active::before {
+    transform: scale(1);
+  }
+
+  .nav__resume-item {
+    margin-left: var(--s3);
+  }
+
+  .nav__resume {
+    min-height: 36px;
+  }
+
+  .nav__toggle {
+    display: none;
+  }
+
+  @media (max-width: 860px) {
+    .wordmark__role {
+      display: none;
+    }
+
+    .nav__toggle {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      min-height: 44px;
+      padding: 0 0 0 12px;
+      border: 0;
+      background: none;
+      font-family: var(--mono);
+      font-size: 0.78rem;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--bone-2);
+    }
+
+    .nav__toggle-icon {
+      position: relative;
+      width: 18px;
+      height: 10px;
+    }
+
+    .nav__toggle-icon i {
+      position: absolute;
+      left: 0;
+      width: 18px;
+      height: 1.5px;
+      background: currentColor;
+      transition: transform var(--t-med) var(--ease-out);
+    }
+
+    .nav__toggle-icon i:first-child {
+      top: 0;
+    }
+
+    .nav__toggle-icon i:last-child {
+      bottom: 0;
+    }
+
+    .nav__toggle[aria-expanded='true'] .nav__toggle-icon i:first-child {
+      transform: translateY(4.25px) rotate(45deg);
+    }
+
+    .nav__toggle[aria-expanded='true'] .nav__toggle-icon i:last-child {
+      transform: translateY(-4.25px) rotate(-45deg);
+    }
+
+    .nav__list {
+      position: fixed;
+      inset: var(--header-h) 0 auto 0;
+      flex-direction: column;
+      align-items: stretch;
+      gap: 0;
+      padding: var(--s3) var(--gutter) var(--s6);
+      background: rgb(10 12 15 / 0.97);
+      border-bottom: 1px solid var(--line);
+      transform: translateY(-8px);
+      opacity: 0;
+      visibility: hidden;
+      transition:
+        opacity var(--t-med) var(--ease-out),
+        transform var(--t-med) var(--ease-out),
+        visibility 0s linear var(--t-med);
+    }
+
+    .site-header.is-open .nav__list {
+      opacity: 1;
+      transform: none;
+      visibility: visible;
+      transition:
+        opacity var(--t-med) var(--ease-out),
+        transform var(--t-med) var(--ease-out);
+    }
+
+    .nav__list li {
+      border-bottom: 1px solid var(--line);
+    }
+
+    .nav__link {
+      width: 100%;
+      min-height: 56px;
+      padding: 0;
+      font-family: var(--serif);
+      font-size: 1.9rem;
+      color: var(--bone);
+    }
+
+    .nav__link::before {
+      left: auto;
+      right: 4px;
+      bottom: auto;
+      top: 50%;
+      margin-top: -3px;
+      width: 6px;
+      height: 6px;
+    }
+
+    .nav__resume-item {
+      margin: var(--s5) 0 0;
+      border-bottom: 0 !important;
+    }
+
+    .nav__resume {
+      width: 100%;
+      justify-content: center;
+      min-height: 48px;
+    }
+  }
+</style>
+
+<script>
+  const header = document.querySelector<HTMLElement>('[data-header]');
+  const toggle = document.querySelector<HTMLButtonElement>('[data-nav-toggle]');
+  const list = document.querySelector<HTMLElement>('[data-nav-list]');
+
+  if (header && toggle && list) {
+    const onScroll = () => header.classList.toggle('is-scrolled', window.scrollY > 8);
+    onScroll();
+    window.addEventListener('scroll', onScroll, { passive: true });
+
+    const setOpen = (open: boolean) => {
+      header.classList.toggle('is-open', open);
+      toggle.setAttribute('aria-expanded', String(open));
+      toggle.querySelector('.nav__toggle-text')!.textContent = open ? 'Close' : 'Menu';
+    };
+
+    toggle.addEventListener('click', () => setOpen(toggle.getAttribute('aria-expanded') !== 'true'));
+    list.addEventListener('click', (e) => {
+      if ((e.target as HTMLElement).closest('a')) setOpen(false);
+    });
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape' && header.classList.contains('is-open')) {
+        setOpen(false);
+        toggle.focus();
+      }
+    });
+    window.matchMedia('(min-width: 861px)').addEventListener('change', (e) => {
+      if (e.matches) setOpen(false);
+    });
+
+    // Scroll spy: mark the section whose top has most recently crossed the upper third.
+    const links = [...document.querySelectorAll<HTMLAnchorElement>('[data-spy]')];
+    const sections = links
+      .map((l) => document.getElementById(l.dataset.spy!))
+      .filter((s): s is HTMLElement => Boolean(s));
+    const spy = () => {
+      const line = window.innerHeight * 0.33;
+      let current = '';
+      for (const s of sections) if (s.getBoundingClientRect().top <= line) current = s.id;
+      for (const l of links) l.classList.toggle('is-active', l.dataset.spy === current);
+    };
+    spy();
+    window.addEventListener('scroll', spy, { passive: true });
+  }
+</script>

@@ -1,0 +1,40 @@
+---
+import { profile } from '../content/profile';
+const year = new Date().getFullYear();
+---
+
+<footer class="footer">
+  <div class="wrap footer__inner">
+    <p>© {year} {profile.fullName}</p>
+    <p class="footer__meta">Built with Astro and hand-drawn SVG. No trackers, no cookies.</p>
+    <a class="footer__top label" href="#top">Back to top <span aria-hidden="true">↑</span></a>
+  </div>
+</footer>
+
+<style>
+  .footer {
+    border-top: 1px solid var(--line);
+  }
+
+  .footer__inner {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--s3) var(--s6);
+    min-height: 72px;
+    padding-block: var(--s4);
+    color: var(--bone-3);
+    font-size: 0.875rem;
+  }
+
+  .footer__top {
+    display: inline-flex;
+    align-items: center;
+    min-height: 44px;
+  }
+
+  .footer__top:hover {
+    color: var(--bone);
+  }
+</style>

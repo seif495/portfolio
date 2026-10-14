@@ -1,0 +1,263 @@
+---
+import SectionHead from './SectionHead.astro';
+import FplCase from './work/FplCase.astro';
+import RansomwareCase from './work/RansomwareCase.astro';
+import XcvCase from './work/XcvCase.astro';
+import ArabicCase from './work/ArabicCase.astro';
+import { caseIndex, moreWork } from '../content/work';
+---
+
+<section class="section work" id="work" aria-labelledby="work-title">
+  <div class="wrap">
+    <SectionHead index="01" label="Selected work" title="Four systems, measured down to their failure modes." id="work-title">
+      <p>
+        Each is shown the way I’d want it reviewed: what it does, how it works, the numbers it earned, and where it
+        still breaks. The panels are interactive and built from the projects’ own data.
+      </p>
+    </SectionHead>
+
+    <nav class="index" aria-label="Case studies" data-reveal>
+      <ol>
+        {
+          caseIndex.map((c) => (
+            <li>
+              <a href={`#${c.id}`} class="index__item">
+                <span class="index__num serif" aria-hidden="true">{c.index}</span>
+                <span class="index__area label">{c.area}</span>
+                <span class="index__title serif">{c.title}</span>
+                <span class="index__result">{c.result}</span>
+                <span class="index__status label">
+                  {c.status} <span aria-hidden="true">↓</span>
+                </span>
+              </a>
+            </li>
+          ))
+        }
+      </ol>
+    </nav>
+
+    <div class="cases">
+      <FplCase />
+      <RansomwareCase />
+      <XcvCase />
+      <ArabicCase />
+    </div>
+
+    <div class="more" aria-labelledby="more-title">
+      <h3 class="label" id="more-title">Also built</h3>
+      <ul class="more__list">
+        {
+          moreWork.filter((m) => m.id !== 'thesis').map((m) => (
+            <li class="more__item" id={m.id} data-reveal>
+              <p class="more__kind label">{m.kind}</p>
+              <h4 class="more__title serif">{m.title}</h4>
+              <p class="more__text">{m.text}</p>
+              <ul class="more__links">
+                {m.links.map((l) => (
+                  <li>
+                    <a class="link" href={l.href} target="_blank" rel="noopener">
+                      {l.label} <span class="arrow" aria-hidden="true">↗</span>
+                    </a>
+                  </li>
+                ))}
+              </ul>
+            </li>
+          ))
+        }
+      </ul>
+    </div>
+  </div>
+</section>
+
+<style>
+  .section {
+    padding-top: clamp(var(--s9), 10vw, var(--s10));
+  }
+
+  .index {
+    margin-top: clamp(var(--s7), 6vw, var(--s8));
+  }
+
+  .index ol {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    border-top: 1px solid var(--line-2);
+    border-bottom: 1px solid var(--line-2);
+  }
+
+  .index li + li {
+    border-left: 1px solid var(--line);
+  }
+
+  .index__item {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    gap: var(--s2);
+    height: 100%;
+    padding: var(--s5) var(--s5) var(--s5) var(--s5);
+    transition: background var(--t-fast) var(--ease-out);
+  }
+
+  .index li:first-child .index__item {
+    padding-left: 0;
+  }
+
+  .index__item:hover {
+    background: var(--ink-1);
+  }
+
+  .index__num {
+    font-size: 2.6rem;
+    line-height: 0.9;
+    color: var(--bone-4);
+    transition: color var(--t-fast) var(--ease-out);
+  }
+
+  .index__item:hover .index__num {
+    color: var(--signal);
+  }
+
+  .index__area {
+    margin-top: var(--s2);
+  }
+
+  .index__title {
+    font-size: 1.6rem;
+    line-height: 1.08;
+  }
+
+  .index__result {
+    color: var(--bone-2);
+    font-size: var(--fs-small);
+    line-height: 1.45;
+  }
+
+  .index__status {
+    margin-top: auto;
+    padding-top: var(--s3);
+    color: var(--bone-3);
+  }
+
+  .index__item:hover .index__status {
+    color: var(--signal);
+  }
+
+  @media (max-width: 1080px) {
+    .index ol {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .index li:nth-child(3) {
+      border-left: 0;
+    }
+
+    .index li:nth-child(n + 3) {
+      border-top: 1px solid var(--line);
+    }
+
+    .index li:nth-child(3) .index__item {
+      padding-left: 0;
+    }
+  }
+
+  @media (max-width: 600px) {
+    .index ol {
+      grid-template-columns: minmax(0, 1fr);
+    }
+
+    .index li + li {
+      border-left: 0;
+      border-top: 1px solid var(--line);
+    }
+
+    .index .index__item {
+      display: grid;
+      grid-template-columns: 2.6rem minmax(0, 1fr);
+      gap: 2px var(--s3);
+      padding: var(--s4) 0;
+    }
+
+    .index__num {
+      grid-row: span 4;
+      font-size: 2rem;
+    }
+
+    .index__area {
+      margin-top: 0;
+    }
+
+    .index__title {
+      font-size: 1.4rem;
+    }
+
+    .index__status {
+      padding-top: var(--s1);
+    }
+  }
+
+  .cases {
+    display: grid;
+    gap: clamp(var(--s9), 10vw, 9rem);
+    margin-top: clamp(var(--s8), 7vw, var(--s9));
+  }
+
+  .cases :global(.case) {
+    position: relative;
+    padding-top: var(--s6);
+    border-top: 1px solid var(--line);
+  }
+
+  .cases :global(.case-lead) {
+    font-size: var(--fs-lead);
+    line-height: 1.55;
+    color: var(--bone-2);
+    max-width: 62ch;
+  }
+
+  .more {
+    margin-top: clamp(var(--s9), 10vw, 9rem);
+    padding-top: var(--s5);
+    border-top: 1px solid var(--line);
+  }
+
+  .more__list {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: var(--s6) clamp(var(--s6), 5vw, var(--s9));
+    margin-top: var(--s5);
+  }
+
+  .more__title {
+    margin-top: var(--s2);
+    font-size: clamp(1.5rem, 1.25rem + 0.9vw, 2rem);
+    line-height: 1.1;
+  }
+
+  .more__text {
+    margin-top: var(--s3);
+    color: var(--bone-2);
+    font-size: var(--fs-small);
+    max-width: 58ch;
+  }
+
+  .more__links {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--s2) var(--s5);
+    margin-top: var(--s3);
+    font-size: var(--fs-small);
+  }
+
+  .more__links li {
+    min-height: 32px;
+    display: flex;
+    align-items: center;
+  }
+
+  @media (max-width: 860px) {
+    .more__list {
+      grid-template-columns: minmax(0, 1fr);
+    }
+  }
+</style>

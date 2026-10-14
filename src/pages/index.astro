@@ -1,0 +1,29 @@
+---
+import Base from '../layouts/Base.astro';
+import Header from '../components/Header.astro';
+import Hero from '../components/Hero.astro';
+import Work from '../components/Work.astro';
+import Experience from '../components/Experience.astro';
+import Toolkit from '../components/Toolkit.astro';
+import About from '../components/About.astro';
+import Contact from '../components/Contact.astro';
+import Footer from '../components/Footer.astro';
+---
+
+<Base>
+  <Header />
+  <main id="main">
+    <Hero />
+    <Work />
+    <Experience />
+    <Toolkit />
+    <About />
+    <Contact />
+  </main>
+  <Footer />
+</Base>
+
+<script>
+  import { initReveal } from '../scripts/reveal';
+  initReveal();
+</script>

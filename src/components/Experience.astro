@@ -1,0 +1,319 @@
+---
+import SectionHead from './SectionHead.astro';
+import { education, fmtRange, months, roles, type YM } from '../content/experience';
+
+// Time strip: Jan 2024 → Jun 2026 (inclusive), with the degree as context.
+const AXIS_START: YM = [2024, 1];
+const AXIS_END: YM = [2026, 6];
+const span = months(AXIS_START, AXIS_END);
+const pos = (ym: YM) => ((months(AXIS_START, ym) - 1) / span) * 100;
+const width = (a: YM, b: YM) => (months(a, b) / span) * 100;
+const years = [2024, 2025, 2026];
+const key = (ym: YM) => ym[0] * 12 + ym[1];
+const chrono = [...roles].sort((a, b) => key(a.start) - key(b.start));
+---
+
+<section class="section experience" id="experience" aria-labelledby="exp-title">
+  <div class="wrap">
+    <SectionHead index="02" label="Experience" title="Three internships: AI engineering, data science, analytics." id="exp-title" />
+
+    <figure class="strip" aria-label="Timeline of internships, 2024 to 2026" data-reveal>
+      <div class="strip__axis" aria-hidden="true">
+        {years.map((y) => <span style={`left:${pos([y, 1])}%`}>{y}</span>)}
+      </div>
+      <div class="strip__rows">
+        <div class="strip__row strip__row--edu">
+          <span class="strip__bar" style={`left:0;width:${pos(education.end) + width(education.end, education.end)}%`}>
+            <span class="strip__label">B.Sc. at GUC, since Oct 2021 <span aria-hidden="true">←</span></span>
+          </span>
+        </div>
+        {
+          chrono.map((r) => (
+            <div class="strip__row">
+              <a
+                class="strip__bar strip__bar--role"
+                href={`#exp-${r.id}`}
+                style={`left:${pos(r.start)}%;width:${width(r.start, r.end)}%`}
+                aria-label={`${r.company}, ${r.title}, ${fmtRange(r.start, r.end)}`}
+              >
+                <span class={`strip__label ${pos(r.start) + width(r.start, r.end) > 70 ? 'is-left' : ''}`}>
+                  {r.company} <span class="muted">· {r.title}</span>
+                </span>
+              </a>
+            </div>
+          ))
+        }
+      </div>
+    </figure>
+
+    <ol class="roles">
+      {
+        roles.map((r) => (
+          <li class="role" id={`exp-${r.id}`} data-reveal>
+            <div class="role__when">
+              <p class="mono role__dates">{fmtRange(r.start, r.end)}</p>
+              <p class="role__meta">
+                {months(r.start, r.end)} months · {r.location}
+              </p>
+            </div>
+            <div class="role__main">
+              <h3 class="role__title">
+                <span class="serif role__company">
+                  <a href={r.url} target="_blank" rel="noopener">
+                    {r.company}
+                  </a>
+                  {r.companyNote && <span class="role__note">({r.companyNote})</span>}
+                </span>
+                <span class="role__position">{r.title}</span>
+              </h3>
+              <ul class="role__points">
+                {r.points.map((p) => (
+                  <li>{p}</li>
+                ))}
+              </ul>
+              <ul class="tags role__stack" aria-label="Tools">
+                {r.stack.map((s) => (
+                  <li class="tag">{s}</li>
+                ))}
+              </ul>
+            </div>
+            <dl class="role__readout">
+              {r.readout.map((o) => (
+                <div>
+                  <dd class="serif">{o.value}</dd>
+                  <dt>{o.label}</dt>
+                </div>
+              ))}
+            </dl>
+          </li>
+        ))
+      }
+    </ol>
+  </div>
+</section>
+
+<style>
+  .section {
+    padding-top: clamp(var(--s9), 10vw, var(--s10));
+  }
+
+  /* ---------- Strip ---------- */
+  .strip {
+    margin: clamp(var(--s7), 6vw, var(--s8)) 0 0;
+    padding: var(--s6) 0 var(--s2);
+    border-bottom: 1px solid var(--line);
+    position: relative;
+  }
+
+  .strip__axis {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+  }
+
+  .strip__axis span {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    padding-left: 8px;
+    border-left: 1px dashed var(--line-2);
+    font-family: var(--mono);
+    font-size: var(--fs-micro);
+    color: var(--bone-4);
+  }
+
+  .strip__rows {
+    position: relative;
+    display: grid;
+    gap: 10px;
+  }
+
+  .strip__row {
+    position: relative;
+    height: 30px;
+  }
+
+  .strip__bar {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    display: flex;
+    align-items: center;
+  }
+
+  .strip__row--edu .strip__bar {
+    background: linear-gradient(90deg, transparent, rgb(205 185 141 / 0.1) 18%);
+    border-right: 2px solid var(--sand);
+  }
+
+  .strip__row--edu .strip__label {
+    position: static;
+    margin-left: auto;
+    padding-right: var(--s3);
+    color: var(--sand);
+  }
+
+  .strip__bar--role {
+    min-width: 6px;
+    background: var(--bone);
+    transition: background var(--t-fast) var(--ease-out);
+  }
+
+  .strip__bar--role:hover {
+    background: var(--signal);
+  }
+
+  .strip__label {
+    position: absolute;
+    left: calc(100% + 10px);
+    white-space: nowrap;
+    font-size: 0.875rem;
+    color: var(--bone);
+  }
+
+  .strip__label.is-left {
+    left: auto;
+    right: calc(100% + 10px);
+  }
+
+  /* ---------- Roles ---------- */
+  .roles {
+    margin-top: var(--s5);
+  }
+
+  .role {
+    display: grid;
+    grid-template-columns: minmax(0, 3fr) minmax(0, 6fr) minmax(0, 3fr);
+    gap: var(--s5) clamp(var(--s5), 3vw, var(--s7));
+    padding: var(--s6) 0;
+    border-bottom: 1px solid var(--line);
+    scroll-margin-top: calc(var(--header-h) + 24px);
+  }
+
+  .role__dates {
+    font-size: 0.875rem;
+    color: var(--bone);
+  }
+
+  .role__meta {
+    margin-top: var(--s1);
+    color: var(--bone-3);
+    font-size: 0.875rem;
+  }
+
+  .role__title {
+    display: flex;
+    flex-direction: column;
+    gap: var(--s1);
+    font-weight: 400;
+  }
+
+  .role__company {
+    font-size: clamp(1.9rem, 1.5rem + 1.3vw, 2.6rem);
+    line-height: 1;
+  }
+
+  .role__company a {
+    text-decoration: underline;
+    text-decoration-color: transparent;
+    text-underline-offset: 0.12em;
+    text-decoration-thickness: 1px;
+    transition: text-decoration-color var(--t-fast) var(--ease-out);
+  }
+
+  .role__company a:hover {
+    text-decoration-color: var(--signal);
+  }
+
+  .role__note {
+    margin-left: 0.35em;
+    font-size: 0.55em;
+    color: var(--bone-3);
+  }
+
+  .role__position {
+    font-family: var(--sans);
+    font-size: var(--fs-body);
+    font-weight: 500;
+    color: var(--bone-2);
+  }
+
+  .role__points {
+    margin-top: var(--s4);
+  }
+
+  .role__points li {
+    position: relative;
+    padding-left: 1.2em;
+    color: var(--bone-2);
+  }
+
+  .role__points li + li {
+    margin-top: var(--s2);
+  }
+
+  .role__points li::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 0.78em;
+    width: 0.55em;
+    height: 1px;
+    background: var(--bone-3);
+  }
+
+  .role__stack {
+    margin-top: var(--s4);
+  }
+
+  .role__readout {
+    display: flex;
+    flex-direction: column;
+    gap: var(--s4);
+  }
+
+  .role__readout div {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .role__readout dd {
+    font-size: clamp(2.4rem, 1.8rem + 2vw, 3.4rem);
+    line-height: 1;
+  }
+
+  .role__readout dt {
+    margin-top: var(--s1);
+    color: var(--bone-3);
+    font-size: 0.875rem;
+  }
+
+  @media (max-width: 960px) {
+    .role {
+      grid-template-columns: minmax(0, 1fr);
+      gap: var(--s3);
+    }
+
+    .role__readout {
+      flex-direction: row;
+      flex-wrap: wrap;
+      gap: var(--s6);
+      order: 3;
+      margin-top: var(--s3);
+    }
+
+    .role__main {
+      order: 2;
+    }
+  }
+
+  @media (max-width: 640px) {
+    .strip__label .muted {
+      display: none;
+    }
+
+    .strip__row--edu .strip__label {
+      font-size: 0.75rem;
+    }
+  }
+</style>

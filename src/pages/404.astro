@@ -1,0 +1,44 @@
+---
+import Base from '../layouts/Base.astro';
+---
+
+<Base title="Not found · Seif Moheb" noindex>
+  <main id="main" class="nf wrap">
+    <p class="label"><span class="signal">404</span>&emsp;No such node</p>
+    <h1 class="serif">This page isn’t in the graph.</h1>
+    <pre class="mono"><span class="kw">MATCH</span> (p:Page &#123;path: $path&#125;) <span class="kw">RETURN</span> p
+// (no records)</pre>
+    <a class="btn btn--solid" href="/">Back to the portfolio</a>
+  </main>
+</Base>
+
+<style>
+  .nf {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    gap: var(--s5);
+  }
+
+  h1 {
+    font-size: var(--fs-h1);
+    line-height: 1;
+    max-width: 16ch;
+  }
+
+  pre {
+    margin: 0;
+    color: var(--bone-3);
+    font-size: 0.875rem;
+    white-space: pre-wrap;
+  }
+
+  .kw {
+    color: var(--steel);
+  }
+
+  .btn {
+    align-self: flex-start;
+  }
+</style>

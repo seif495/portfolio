@@ -1,0 +1,810 @@
+---
+import CaseHeader from './CaseHeader.astro';
+import EvalChart from './EvalChart.astro';
+import { fpl } from '../../content/work';
+import traces from '../../data/fpl-traces.json';
+import { fmtInt, groundAnswer, highlightCypher } from '../../lib/format';
+
+type Row = Record<string, string | number>;
+
+const columns: Record<string, { key: string; label: string; num?: boolean }[]> = {
+  'top-scorers': [
+    { key: 'player_name', label: 'Player' },
+    { key: 'team', label: 'Team' },
+    { key: 'goals', label: 'Goals', num: true },
+    { key: 'assists', label: 'Ast', num: true },
+    { key: 'total_points', label: 'Pts', num: true },
+  ],
+  comparison: [
+    { key: 'player_name', label: 'Player' },
+    { key: 'team_name', label: 'Team' },
+    { key: 'total_points', label: 'Pts', num: true },
+    { key: 'goals', label: 'Goals', num: true },
+    { key: 'assists', label: 'Ast', num: true },
+    { key: 'minutes', label: 'Min', num: true },
+  ],
+};
+
+const ENTITY_LABEL: Record<string, string> = {
+  players: 'player',
+  teams: 'team',
+  seasons: 'season',
+  stats: 'stat',
+  positions: 'position',
+  gameweeks: 'gameweek',
+  numbers: 'number',
+};
+
+const recorded = new Date(traces.recordedAt);
+const recordedText = `${recorded.getUTCDate()} Oct ${recorded.getUTCFullYear()}, ${String(recorded.getUTCHours()).padStart(2, '0')}:${String(recorded.getUTCMinutes()).padStart(2, '0')} UTC`;
+
+const prepared = traces.traces.map((t) => {
+  const lines = t.cypher ? t.cypher.split('\n').length : 0;
+  const maxML = Math.max(...t.ml.map((m) => m.points), 1);
+  return {
+    ...t,
+    lines,
+    cypherHtml: t.cypher ? highlightCypher(t.cypher) : '',
+    answerHtml: groundAnswer(t.answer, `${t.kgContext}\n${t.mlContext}`),
+    cols: columns[t.id] ?? [],
+    rows: t.rows as Row[],
+    maxML,
+  };
+});
+
+const { modelStory } = fpl;
+---
+
+<article class="case" id="fpl" aria-labelledby="fpl-title">
+  <CaseHeader {...fpl} live />
+
+  <div class="fpl-intro" data-reveal>
+    <p class="case-lead">{fpl.summary}</p>
+    <div class="snapshot">
+      <p class="label"><span class="dot dot--live" aria-hidden="true"></span>&ensp;Live graph · {fpl.graphSnapshot.date}</p>
+      <dl class="snapshot__grid">
+        {
+          fpl.graphSnapshot.stats.map((s) => (
+            <div>
+              <dt>{s.label}</dt>
+              <dd class="serif">{s.value}</dd>
+            </div>
+          ))
+        }
+      </dl>
+      <p class="snapshot__src">From the app’s <code>/health</code> endpoint.</p>
+    </div>
+  </div>
+
+  <!-- Trace instrument -->
+  <section class="instrument trace" aria-labelledby="trace-title" data-trace data-reveal>
+    <div class="instrument__bar">
+      <span><span class="dot dot--live" aria-hidden="true"></span>&ensp;<strong id="trace-title">Trace a question</strong></span>
+      <span class="trace__src">POST /api/query · recorded {recordedText}</span>
+    </div>
+
+    <div class="trace__tabs" role="tablist" aria-label="Recorded questions">
+      {
+        prepared.map((t, i) => (
+          <button
+            type="button"
+            role="tab"
+            id={`trace-tab-${t.id}`}
+            aria-controls={`trace-panel-${t.id}`}
+            aria-selected={i === 0 ? 'true' : 'false'}
+            tabindex={i === 0 ? 0 : -1}
+            class="trace__tab"
+          >
+            <span class="trace__prompt" aria-hidden="true">›</span>
+            <span>{t.question}</span>
+          </button>
+        ))
+      }
+    </div>
+
+    {
+      prepared.map((t, i) => (
+        <div
+          class="trace__panel"
+          role="tabpanel"
+          id={`trace-panel-${t.id}`}
+          aria-labelledby={`trace-tab-${t.id}`}
+          hidden={i !== 0}
+          tabindex="0"
+        >
+          <ol class="trace__log">
+            <li class="step" style="--i:0">
+              <p class="step__k label">01 · Intent</p>
+              <div class="step__v">
+                <code class="pill pill--signal">{t.intent}</code>
+                <span class="step__note">A rule-based classifier picks one of 20 intents; each maps to a parameterized query.</span>
+              </div>
+            </li>
+            <li class="step" style="--i:1">
+              <p class="step__k label">02 · Entities</p>
+              <div class="step__v">
+                {Object.keys(t.entities).length === 0 ? (
+                  <span class="step__note">None extracted. The question names no player, team or season.</span>
+                ) : (
+                  <div class="tags">
+                    {Object.entries(t.entities).flatMap(([k, vs]) =>
+                      (vs as string[]).map((v) => (
+                        <span class="tag">
+                          <span class="tag__k">{ENTITY_LABEL[k] ?? k}</span>&nbsp;{v}
+                        </span>
+                      )),
+                    )}
+                  </div>
+                )}
+              </div>
+            </li>
+            <li class="step" style="--i:2">
+              <p class="step__k label">03 · Cypher</p>
+              <div class="step__v">
+                {t.cypher ? (
+                  <div class="code" data-code>
+                    <pre class="code__pre" data-collapsed={t.lines > 7 ? 'true' : undefined}><code set:html={t.cypherHtml} /></pre>
+                    {t.lines > 7 && (
+                      <button type="button" class="code__toggle label" aria-expanded="false" data-code-toggle>
+                        Show all {t.lines} lines
+                      </button>
+                    )}
+                  </div>
+                ) : (
+                  <span class="step__note">
+                    No graph query: the <code>prediction</code> intent reads the next-gameweek file written by the
+                    points model.
+                  </span>
+                )}
+              </div>
+            </li>
+            {t.rows.length > 0 && (
+              <li class="step" style="--i:3">
+                <p class="step__k label">04 · Graph rows</p>
+                <div class="step__v">
+                  <div class="table-wrap">
+                    <table class="rows">
+                      <thead>
+                        <tr>
+                          {t.cols.map((c) => (
+                            <th scope="col" class={c.num ? 'num' : ''}>
+                              {c.label}
+                            </th>
+                          ))}
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {t.rows.map((r) => (
+                          <tr>
+                            {t.cols.map((c) => (
+                              <td class={c.num ? 'num' : ''}>
+                                {typeof r[c.key] === 'number' ? fmtInt(r[c.key] as number) : r[c.key]}
+                              </td>
+                            ))}
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                  <span class="step__note">
+                    {t.rows.length === 2 ? 'Both players returned' : `Top ${t.rows.length} of the result shown`}.
+                  </span>
+                </div>
+              </li>
+            )}
+            {t.ml.length > 0 && (
+              <li class="step" style="--i:3">
+                <p class="step__k label">04 · Model</p>
+                <div class="step__v">
+                  <ul class="bars">
+                    {t.ml.map((m) => (
+                      <li>
+                        <span class="bars__name">
+                          {m.name} <span class="muted">({m.position}) vs {m.fixture}</span>
+                        </span>
+                        <span class="bars__track" aria-hidden="true">
+                          <span class="bars__fill" style={`--v:${(m.points / t.maxML).toFixed(3)}`} />
+                        </span>
+                        <span class="bars__val mono">{m.points.toFixed(1)}</span>
+                      </li>
+                    ))}
+                  </ul>
+                  <span class="step__note">XGBoost v3 expected points, scaled by FPL’s chance-of-playing flags.</span>
+                </div>
+              </li>
+            )}
+            <li class="step" style="--i:4">
+              <p class="step__k label">05 · Embeddings</p>
+              <div class="step__v">
+                <ul class="bars bars--sim">
+                  {t.embeddings.map((m) => (
+                    <li>
+                      <span class="bars__name">
+                        {m.name} <span class="muted">{m.season}</span>
+                      </span>
+                      <span class="bars__track" aria-hidden="true">
+                        <span class="bars__fill" style={`--v:${(m.similarity / 100).toFixed(3)}`} />
+                      </span>
+                      <span class="bars__val mono">{m.similarity.toFixed(1)}%</span>
+                    </li>
+                  ))}
+                </ul>
+                <span class="step__note">
+                  {t.id === 'captain'
+                    ? 'No player is named, so similarity stays below 40% and the answer comes from the model.'
+                    : 'Semantic matches over player-season profiles, added to the graph context.'}
+                </span>
+              </div>
+            </li>
+            <li class="step step--answer" style="--i:5">
+              <p class="step__k label">06 · Answer</p>
+              <div class="step__v">
+                <blockquote class="answer">
+                  <p set:html={t.answerHtml} />
+                </blockquote>
+                <span class="step__note">
+                  Verbatim LLM output. <mark class="grounded">Marked</mark> numbers appear in the retrieved context.
+                </span>
+              </div>
+            </li>
+          </ol>
+        </div>
+      ))
+    }
+    <p class="trace__foot">
+      Recorded from the deployed app; responses shown as returned.
+      <a class="link" href={fpl.links[0]!.href} target="_blank" rel="noopener">Ask your own question <span class="arrow" aria-hidden="true">↗</span></a>
+    </p>
+  </section>
+
+  <!-- Model story + evaluation -->
+  <div class="fpl-model">
+    <div class="story" data-reveal>
+      <p class="label">The model had to earn its place</p>
+      <ol class="story__steps">
+        <li>
+          <span class="story__fig serif"><s>R² 0.87</s></span>
+          <p>{modelStory.before}</p>
+        </li>
+        <li>
+          <span class="story__fig serif signal">27×</span>
+          <p>{modelStory.audit}</p>
+        </li>
+        <li>
+          <span class="story__fig serif">R² 0.32</span>
+          <p>{modelStory.after}</p>
+        </li>
+      </ol>
+      <p class="story__proof">
+        The audit is now part of the evaluation: scrambling every outcome from mid-season onwards changes 0 of
+        148,300 earlier feature rows, and the test suite checks for row duplication and look-ahead.
+      </p>
+    </div>
+    <EvalChart />
+  </div>
+
+  <!-- Operations -->
+  <div class="fpl-ops" data-reveal>
+    <div>
+      <p class="label">How it keeps itself current</p>
+      <ol class="ops">
+        {
+          fpl.ops.map((o) => (
+            <li>
+              <span class="ops__when mono">{o.when}</span>
+              <p>{o.what}</p>
+            </li>
+          ))
+        }
+      </ol>
+    </div>
+    <div>
+      <dl class="kv">
+        {
+          fpl.facts.map((f) => (
+            <div>
+              <dt>{f.k}</dt>
+              <dd>{f.v}</dd>
+            </div>
+          ))
+        }
+      </dl>
+      <p class="label limits-title">Known limits</p>
+      <ul class="limits">
+        {fpl.limits.map((l) => <li>{l}</li>)}
+      </ul>
+    </div>
+  </div>
+</article>
+
+<style>
+  .fpl-intro {
+    display: grid;
+    grid-template-columns: minmax(0, 7fr) minmax(0, 5fr);
+    gap: clamp(var(--s6), 5vw, var(--s9));
+    align-items: start;
+    margin-top: var(--s7);
+  }
+
+  .snapshot {
+    padding: var(--s4) 0 0;
+    border-top: 1px solid var(--line-2);
+  }
+
+  .snapshot__grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: var(--s4) var(--s5);
+    margin-top: var(--s4);
+  }
+
+  .snapshot__grid dt {
+    order: 2;
+    color: var(--bone-3);
+    font-size: var(--fs-small);
+  }
+
+  .snapshot__grid div {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .snapshot__grid dd {
+    font-size: clamp(1.9rem, 1.5rem + 1.2vw, 2.6rem);
+    line-height: 1.05;
+  }
+
+  .snapshot__src {
+    margin-top: var(--s4);
+    color: var(--bone-3);
+    font-size: 0.8125rem;
+  }
+
+  code {
+    font-family: var(--mono);
+    font-size: 0.88em;
+  }
+
+  /* ---------- Trace ---------- */
+  .trace {
+    margin-top: var(--s7);
+  }
+
+  .trace__src {
+    text-align: right;
+  }
+
+  .trace__tabs {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    border-bottom: 1px solid var(--line);
+  }
+
+  .trace__tab {
+    display: flex;
+    gap: 0.6em;
+    align-items: flex-start;
+    min-height: 64px;
+    padding: var(--s4);
+    border: 0;
+    border-right: 1px solid var(--line);
+    background: transparent;
+    color: var(--bone-3);
+    font-size: var(--fs-small);
+    line-height: 1.4;
+    text-align: left;
+    transition:
+      color var(--t-fast) var(--ease-out),
+      background var(--t-fast) var(--ease-out);
+  }
+
+  .trace__tab:last-child {
+    border-right: 0;
+  }
+
+  .trace__tab:hover {
+    color: var(--bone);
+    background: var(--ink-2);
+  }
+
+  .trace__tab[aria-selected='true'] {
+    color: var(--bone);
+    background: var(--ink-2);
+    box-shadow: inset 0 -2px 0 var(--signal);
+  }
+
+  .trace__prompt {
+    font-family: var(--mono);
+    color: var(--signal);
+  }
+
+  .trace__panel {
+    padding: var(--s2) var(--s4) var(--s4);
+    outline-offset: -4px;
+  }
+
+  .trace__log {
+    position: relative;
+  }
+
+  .step {
+    display: grid;
+    grid-template-columns: 10rem minmax(0, 1fr);
+    gap: var(--s4);
+    padding: var(--s4) 0;
+    border-bottom: 1px solid var(--line);
+  }
+
+  .step:last-child {
+    border-bottom: 0;
+  }
+
+  @media (prefers-reduced-motion: no-preference) {
+    .trace__panel.is-playing .step {
+      animation: step-in 420ms var(--ease-out) both;
+      animation-delay: calc(var(--i) * 110ms);
+    }
+  }
+
+  @keyframes step-in {
+    from {
+      opacity: 0;
+      transform: translateY(6px);
+    }
+  }
+
+  .step__k {
+    padding-top: 0.3em;
+  }
+
+  .step__v {
+    display: flex;
+    flex-direction: column;
+    gap: var(--s2);
+    min-width: 0;
+  }
+
+  .step__note {
+    color: var(--bone-3);
+    font-size: 0.875rem;
+  }
+
+  .pill {
+    align-self: flex-start;
+    padding: 0.2em 0.6em;
+    border: 1px solid var(--line-3);
+    font-size: 0.85rem;
+  }
+
+  .pill--signal {
+    border-color: var(--signal);
+    color: var(--signal);
+  }
+
+  .tag__k {
+    color: var(--bone-3);
+  }
+
+  .code {
+    position: relative;
+    border: 1px solid var(--line);
+    background: var(--ink-0);
+  }
+
+  .code__pre {
+    margin: 0;
+    padding: var(--s3) var(--s4);
+    overflow-x: auto;
+    font-family: var(--mono);
+    font-size: 0.78rem;
+    line-height: 1.65;
+    color: var(--bone-2);
+    tab-size: 2;
+  }
+
+  .code__pre[data-collapsed='true'] {
+    max-height: calc(7 * 1.65em + 1.5rem);
+    overflow: hidden;
+    mask-image: linear-gradient(to bottom, #000 60%, transparent);
+    -webkit-mask-image: linear-gradient(to bottom, #000 60%, transparent);
+  }
+
+  .code__toggle {
+    width: 100%;
+    min-height: 36px;
+    border: 0;
+    border-top: 1px solid var(--line);
+    background: var(--ink-1);
+    color: var(--bone-2);
+  }
+
+  .code__toggle:hover {
+    color: var(--bone);
+  }
+
+  .code :global(.cy-kw) {
+    color: var(--steel);
+  }
+
+  .code :global(.cy-label) {
+    color: var(--sand);
+  }
+
+  .code :global(.cy-param) {
+    color: var(--signal);
+  }
+
+  .code :global(.cy-fn) {
+    color: var(--bone);
+  }
+
+  .table-wrap {
+    overflow-x: auto;
+  }
+
+  .rows {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.875rem;
+  }
+
+  .rows th {
+    padding: 0 var(--s3) var(--s2) 0;
+    border-bottom: 1px solid var(--line-2);
+    color: var(--bone-3);
+    font-family: var(--mono);
+    font-size: var(--fs-micro);
+    font-weight: 500;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    text-align: left;
+    white-space: nowrap;
+  }
+
+  .rows td {
+    padding: 0.45em var(--s3) 0.45em 0;
+    border-bottom: 1px solid var(--line);
+    color: var(--bone-2);
+    white-space: nowrap;
+  }
+
+  .rows tr:first-child td {
+    color: var(--bone);
+  }
+
+  .rows .num {
+    text-align: right;
+    font-family: var(--mono);
+    font-variant-numeric: tabular-nums;
+  }
+
+  .bars {
+    display: grid;
+    gap: 6px;
+  }
+
+  .bars li {
+    display: grid;
+    grid-template-columns: minmax(0, 1.4fr) minmax(60px, 1fr) 3.6rem;
+    gap: var(--s3);
+    align-items: center;
+    font-size: 0.875rem;
+  }
+
+  .bars__name {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .bars__track {
+    position: relative;
+    height: 6px;
+    background: var(--ink-3);
+  }
+
+  .bars__fill {
+    position: absolute;
+    inset: 0 auto 0 0;
+    width: calc(var(--v) * 100%);
+    background: var(--bone-2);
+  }
+
+  .bars li:first-child .bars__fill {
+    background: var(--signal);
+  }
+
+  .bars__val {
+    text-align: right;
+    font-size: 0.8rem;
+    color: var(--bone-2);
+  }
+
+  .answer {
+    margin: 0;
+    padding-left: var(--s4);
+    border-left: 2px solid var(--signal);
+    font-family: var(--serif);
+    font-size: clamp(1.25rem, 1.1rem + 0.6vw, 1.6rem);
+    line-height: 1.35;
+    color: var(--bone);
+  }
+
+  :global(mark.grounded) {
+    background: none;
+    color: inherit;
+    text-decoration: underline;
+    text-decoration-color: var(--signal);
+    text-decoration-thickness: 2px;
+    text-underline-offset: 0.2em;
+  }
+
+  .trace__foot {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    gap: var(--s3);
+    padding: var(--s3) var(--s4);
+    border-top: 1px solid var(--line);
+    color: var(--bone-3);
+    font-size: 0.875rem;
+  }
+
+  /* ---------- Model story ---------- */
+  .fpl-model {
+    display: grid;
+    grid-template-columns: minmax(0, 5fr) minmax(0, 7fr);
+    gap: clamp(var(--s6), 4vw, var(--s8));
+    margin-top: var(--s8);
+    align-items: start;
+  }
+
+  .story__steps {
+    margin-top: var(--s5);
+    counter-reset: s;
+  }
+
+  .story__steps li {
+    display: grid;
+    grid-template-columns: 7.5rem minmax(0, 1fr);
+    gap: var(--s4);
+    padding: var(--s4) 0;
+    border-top: 1px solid var(--line);
+  }
+
+  .story__fig {
+    font-size: 1.9rem;
+    line-height: 1.05;
+    white-space: nowrap;
+  }
+
+  .story__fig s {
+    color: var(--bone-3);
+    text-decoration-color: var(--signal);
+    text-decoration-thickness: 2px;
+  }
+
+  .story__steps p {
+    color: var(--bone-2);
+    font-size: var(--fs-small);
+  }
+
+  .story__proof {
+    padding-top: var(--s4);
+    border-top: 1px solid var(--line);
+    color: var(--bone-3);
+    font-size: 0.875rem;
+  }
+
+  /* ---------- Ops ---------- */
+  .fpl-ops {
+    display: grid;
+    grid-template-columns: minmax(0, 6fr) minmax(0, 6fr);
+    gap: clamp(var(--s6), 4vw, var(--s8));
+    margin-top: var(--s8);
+  }
+
+  .ops {
+    margin-top: var(--s4);
+    border-left: 1px solid var(--line-2);
+  }
+
+  .ops li {
+    position: relative;
+    padding: 0 0 var(--s5) var(--s5);
+  }
+
+  .ops li::before {
+    content: '';
+    position: absolute;
+    left: -4px;
+    top: 0.45em;
+    width: 7px;
+    height: 7px;
+    background: var(--ink-0);
+    border: 1px solid var(--signal);
+    border-radius: 50%;
+  }
+
+  .ops__when {
+    display: block;
+    font-size: var(--fs-micro);
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--signal);
+  }
+
+  .ops p {
+    margin-top: var(--s1);
+    color: var(--bone-2);
+    font-size: var(--fs-small);
+  }
+
+  .limits-title {
+    margin: var(--s6) 0 var(--s3);
+  }
+
+  @media (max-width: 960px) {
+    .fpl-intro,
+    .fpl-model,
+    .fpl-ops {
+      grid-template-columns: minmax(0, 1fr);
+    }
+
+    .trace__tabs {
+      grid-template-columns: minmax(0, 1fr);
+    }
+
+    .trace__tab {
+      min-height: 52px;
+      border-right: 0;
+      border-bottom: 1px solid var(--line);
+    }
+
+    .trace__tab:last-child {
+      border-bottom: 0;
+    }
+  }
+
+  @media (max-width: 640px) {
+    .trace .instrument__bar {
+      flex-direction: column;
+      align-items: flex-start;
+      justify-content: center;
+      gap: 2px;
+      padding-block: var(--s2);
+    }
+
+    .trace__src {
+      text-align: left;
+    }
+
+    .trace__panel {
+      padding-inline: var(--s3);
+    }
+
+    .step {
+      grid-template-columns: minmax(0, 1fr);
+      gap: var(--s2);
+    }
+
+    .bars li {
+      grid-template-columns: minmax(0, 1fr) 3.2rem;
+    }
+
+    .bars__track {
+      grid-column: 1 / -1;
+      grid-row: 2;
+    }
+
+    .story__steps li {
+      grid-template-columns: minmax(0, 1fr);
+      gap: var(--s2);
+    }
+  }
+</style>
+
+<script>
+  import { initTrace } from '../../scripts/trace';
+  document.querySelectorAll<HTMLElement>('[data-trace]').forEach(initTrace);
+</script>

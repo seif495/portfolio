@@ -1,0 +1,510 @@
+/* ==========================================================================
+   Design system
+   Ink ground, bone type, one signal colour. Hairlines instead of boxes.
+   The signal colour means "this is the evidence" everywhere it appears:
+   a lit graph path, a flagged snapshot, the model under test.
+   ========================================================================== */
+
+:root {
+  color-scheme: dark;
+
+  /* Ground and surfaces */
+  --ink-0: #0a0c0f;
+  --ink-1: #0e1115;
+  --ink-2: #12161b;
+  --ink-3: #181d23;
+  --line: #20262d;
+  --line-2: #2c343c;
+  --line-3: #3a434c;
+
+  /* Type */
+  --bone: #ece8e1;
+  --bone-2: #b7b9bb;
+  --bone-3: #858b91;
+  --bone-4: #777e85;
+
+  /* Signal and supporting hues */
+  --signal: #ff5b37;
+  --signal-ink: #1a0b07;
+  --signal-soft: rgb(255 91 55 / 0.14);
+  --steel: #86afc2;
+  --steel-soft: rgb(134 175 194 / 0.14);
+  --sand: #cdb98d;
+
+  /* Type families */
+  --serif: 'Instrument Serif', 'Iowan Old Style', 'Palatino Linotype', Georgia, serif;
+  --sans: 'IBM Plex Sans', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  --mono: 'IBM Plex Mono', ui-monospace, 'Cascadia Mono', Consolas, monospace;
+  --arabic: 'IBM Plex Sans Arabic', 'Noto Sans Arabic', 'Segoe UI', sans-serif;
+
+  /* Fluid type scale */
+  --fs-display: clamp(4.6rem, 2.2rem + 8vw, 9.25rem);
+  --fs-h1: clamp(2.4rem, 1.5rem + 3.4vw, 4.4rem);
+  --fs-h2: clamp(2rem, 1.35rem + 2.5vw, 3.4rem);
+  --fs-h3: clamp(1.2rem, 1.08rem + 0.45vw, 1.45rem);
+  --fs-lead: clamp(1.14rem, 1.02rem + 0.5vw, 1.42rem);
+  --fs-body: 1.0625rem;
+  --fs-small: 0.9375rem;
+  --fs-micro: 0.75rem;
+
+  /* Spacing (4px base) */
+  --s1: 0.25rem;
+  --s2: 0.5rem;
+  --s3: 0.75rem;
+  --s4: 1rem;
+  --s5: 1.5rem;
+  --s6: 2rem;
+  --s7: 3rem;
+  --s8: 4rem;
+  --s9: 6rem;
+  --s10: 8rem;
+
+  --gutter: clamp(16px, 4vw, 40px);
+  --wrap: 1320px;
+  --header-h: 60px;
+
+  --ease-out: cubic-bezier(0.2, 0.7, 0.1, 1);
+  --ease-in-out: cubic-bezier(0.65, 0, 0.35, 1);
+  --t-fast: 160ms;
+  --t-med: 320ms;
+  --t-slow: 640ms;
+}
+
+/* --------------------------------------------------------------------------
+   Reset
+   -------------------------------------------------------------------------- */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html {
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+  scroll-padding-top: calc(var(--header-h) + 24px);
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  html {
+    scroll-behavior: smooth;
+  }
+}
+
+body {
+  margin: 0;
+  background: var(--ink-0);
+  color: var(--bone);
+  font-family: var(--sans);
+  font-size: var(--fs-body);
+  line-height: 1.6;
+  font-feature-settings: 'ss01', 'ss02';
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+  overflow-x: clip;
+}
+
+h1,
+h2,
+h3,
+h4,
+p,
+figure,
+blockquote,
+dl,
+dd,
+ol,
+ul {
+  margin: 0;
+}
+
+ol,
+ul {
+  padding: 0;
+  list-style: none;
+}
+
+img,
+svg {
+  display: block;
+  max-width: 100%;
+}
+
+button,
+input,
+select {
+  font: inherit;
+  color: inherit;
+}
+
+button {
+  cursor: pointer;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+::selection {
+  background: var(--signal);
+  color: var(--signal-ink);
+}
+
+:focus-visible {
+  outline: 2px solid var(--signal);
+  outline-offset: 3px;
+  border-radius: 2px;
+}
+
+/* --------------------------------------------------------------------------
+   Primitives
+   -------------------------------------------------------------------------- */
+.wrap {
+  width: 100%;
+  max-width: var(--wrap);
+  margin-inline: auto;
+  padding-inline: var(--gutter);
+}
+
+.visually-hidden {
+  position: absolute !important;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+.skip-link {
+  position: fixed;
+  top: -200px;
+  left: 12px;
+  z-index: 100;
+  padding: 10px 14px;
+  background: var(--signal);
+  color: var(--signal-ink);
+  font-weight: 500;
+}
+
+.skip-link:focus {
+  top: 12px;
+}
+
+/* Mono micro-label: the voice of instruments and metadata. */
+.label {
+  font-family: var(--mono);
+  font-size: var(--fs-micro);
+  font-weight: 500;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--bone-3);
+}
+
+.mono {
+  font-family: var(--mono);
+}
+
+.serif {
+  font-family: var(--serif);
+  font-weight: 400;
+}
+
+.muted {
+  color: var(--bone-2);
+}
+
+.signal {
+  color: var(--signal);
+}
+
+/* Underlined text link with an arrow that nudges on hover. */
+.link {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 0.35em;
+  color: var(--bone);
+  text-decoration: underline;
+  text-decoration-color: var(--line-3);
+  text-decoration-thickness: 1px;
+  text-underline-offset: 0.28em;
+  transition:
+    text-decoration-color var(--t-fast) var(--ease-out),
+    color var(--t-fast) var(--ease-out);
+}
+
+.link:hover {
+  text-decoration-color: var(--signal);
+}
+
+.link .arrow {
+  display: inline-block;
+  transition: transform var(--t-fast) var(--ease-out);
+}
+
+.link:hover .arrow {
+  transform: translate(2px, -2px);
+}
+
+/* Buttons: square-shouldered, hairline or solid. */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.6em;
+  min-height: 44px;
+  padding: 0 1.1em;
+  border: 1px solid var(--line-3);
+  background: transparent;
+  color: var(--bone);
+  font-family: var(--mono);
+  font-size: 0.8125rem;
+  font-weight: 500;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  transition:
+    background var(--t-fast) var(--ease-out),
+    border-color var(--t-fast) var(--ease-out),
+    color var(--t-fast) var(--ease-out);
+}
+
+.btn:hover {
+  border-color: var(--bone-2);
+  background: var(--ink-2);
+}
+
+.btn--solid {
+  background: var(--bone);
+  border-color: var(--bone);
+  color: var(--ink-0);
+}
+
+.btn--solid:hover {
+  background: var(--signal);
+  border-color: var(--signal);
+  color: var(--signal-ink);
+}
+
+/* Segmented control used by every instrument. */
+.seg {
+  display: inline-flex;
+  flex-wrap: wrap;
+  gap: 0;
+  padding: 1px 0 0 1px;
+}
+
+.seg button {
+  min-height: 36px;
+  margin: -1px 0 0 -1px;
+  padding: 0 0.85em;
+  border: 1px solid var(--line-2);
+  background: transparent;
+  color: var(--bone-3);
+  font-family: var(--mono);
+  font-size: 0.75rem;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  transition:
+    color var(--t-fast) var(--ease-out),
+    background var(--t-fast) var(--ease-out);
+}
+
+.seg button:hover {
+  color: var(--bone);
+}
+
+.seg button[aria-pressed='true'],
+.seg button[aria-selected='true'] {
+  position: relative;
+  background: var(--bone);
+  border-color: var(--bone);
+  color: var(--ink-0);
+}
+
+@media (max-width: 640px) {
+  .seg {
+    display: flex;
+  }
+
+  .seg button {
+    flex: 1 1 auto;
+  }
+
+}
+
+/* Small inline tag. */
+.tag {
+  display: inline-flex;
+  align-items: center;
+  min-height: 24px;
+  padding: 0 0.55em;
+  border: 1px solid var(--line-2);
+  color: var(--bone-2);
+  font-family: var(--mono);
+  font-size: 0.72rem;
+  letter-spacing: 0.02em;
+  white-space: nowrap;
+}
+
+.tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+/* Instrument frame: a panel with a header strip, used for every interactive. */
+.instrument {
+  position: relative;
+  border: 1px solid var(--line-2);
+  background: var(--ink-1);
+}
+
+.instrument__bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--s4);
+  min-height: 40px;
+  padding: 0 var(--s4);
+  border-bottom: 1px solid var(--line);
+  font-family: var(--mono);
+  font-size: var(--fs-micro);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--bone-3);
+}
+
+.instrument__bar strong {
+  color: var(--bone-2);
+  font-weight: 500;
+}
+
+.dot {
+  display: inline-block;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--bone-4);
+}
+
+.dot--live {
+  background: var(--signal);
+  box-shadow: 0 0 0 3px var(--signal-soft);
+}
+
+.grid-paper {
+  background-image: radial-gradient(circle at 1px 1px, rgb(236 232 225 / 0.07) 1px, transparent 0);
+  background-size: 22px 22px;
+}
+
+/* Key–value list used across case studies. */
+.kv {
+  display: grid;
+  gap: 0;
+  border-top: 1px solid var(--line);
+}
+
+.kv > div {
+  display: grid;
+  grid-template-columns: minmax(7.5rem, 11rem) 1fr;
+  gap: var(--s4);
+  padding: var(--s3) 0;
+  border-bottom: 1px solid var(--line);
+}
+
+.kv dt {
+  font-family: var(--mono);
+  font-size: var(--fs-micro);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--bone-3);
+  padding-top: 0.2em;
+}
+
+.kv dd {
+  color: var(--bone-2);
+  font-size: var(--fs-small);
+}
+
+@media (max-width: 560px) {
+  .kv > div {
+    grid-template-columns: 1fr;
+    gap: var(--s1);
+  }
+}
+
+/* Lists of limits: honest, so give them a visible mark. */
+.limits li {
+  position: relative;
+  padding-left: 1.4em;
+  color: var(--bone-2);
+  font-size: var(--fs-small);
+}
+
+.limits li + li {
+  margin-top: var(--s2);
+}
+
+.limits li::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0.72em;
+  width: 0.7em;
+  height: 1px;
+  background: var(--signal);
+}
+
+/* Scroll reveal (progressive: content is visible without JS). */
+.js [data-reveal] {
+  opacity: 0;
+  transform: translateY(10px);
+  transition:
+    opacity var(--t-slow) var(--ease-out),
+    transform var(--t-slow) var(--ease-out);
+}
+
+.js [data-reveal].is-in {
+  opacity: 1;
+  transform: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+  }
+
+  .js [data-reveal] {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@media (max-width: 640px) {
+  .instrument__bar {
+    flex-direction: column;
+    align-items: flex-start;
+    justify-content: center;
+    gap: 2px;
+    padding-block: var(--s2);
+  }
+}
+
+@media print {
+  body {
+    background: #fff;
+    color: #000;
+  }
+  .site-header,
+  .instrument,
+  .skip-link {
+    display: none !important;
+  }
+}

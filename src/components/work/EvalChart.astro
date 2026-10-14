@@ -1,0 +1,421 @@
+---
+import { evalMetrics } from '../../data/fpl-eval';
+
+interface Geo {
+  id: 'wide' | 'narrow';
+  W: number;
+  L: number;
+  R: number;
+  ROW: number;
+  TOP: number;
+  /** Narrow layout puts each label above its track. */
+  stacked: boolean;
+}
+const first = evalMetrics[0]!;
+const geos: Geo[] = [
+  { id: 'wide', W: 650, L: 176, R: 598, ROW: 38, TOP: 16, stacked: false },
+  { id: 'narrow', W: 340, L: 8, R: 290, ROW: 50, TOP: 10, stacked: true },
+];
+const hOf = (g: Geo) => g.TOP + first.rows.length * g.ROW + 34;
+const xOf = (g: Geo, v: number, max: number) => g.L + (v / max) * (g.R - g.L);
+const fmt = (v: number, d: number) => v.toFixed(d);
+---
+
+<section class="instrument eval" aria-labelledby="eval-title" data-eval data-reveal>
+  <div class="instrument__bar">
+    <span><strong id="eval-title">Pick quality on unseen seasons</strong></span>
+    <span>43 gameweeks · 32,973 rows</span>
+  </div>
+
+  <div class="eval__controls">
+    <div class="seg" role="group" aria-label="Metric">
+      {
+        evalMetrics.map((m, i) => (
+          <button type="button" aria-pressed={i === 0 ? 'true' : 'false'} data-metric={m.id}>
+            {m.tab}
+          </button>
+        ))
+      }
+    </div>
+  </div>
+
+  <p class="eval__title" data-eval-title>{first.title}</p>
+
+  {
+    geos.map((g) => {
+      const H = hOf(g);
+      const x = (v: number, max: number) => xOf(g, v, max);
+      const ty = (i: number) => g.TOP + i * g.ROW + (g.stacked ? g.ROW - 14 : g.ROW / 2);
+      return (
+        <svg
+          class={`eval__svg eval__svg--${g.id}`}
+          viewBox={`0 0 ${g.W} ${H}`}
+          role="img"
+          aria-labelledby="eval-title"
+          aria-describedby="eval-note"
+          data-eval-svg
+          data-geo={JSON.stringify({ L: g.L, R: g.R, TOP: g.TOP, H })}
+        >
+          <g class="eval__grid" data-ticks>
+            {first.ticks.map((t) => (
+              <g class="tick" transform={`translate(${x(t, first.max)} 0)`}>
+                <line y1={g.TOP - 6} y2={H - 26} />
+                <text y={H - 10} text-anchor="middle">
+                  {t}
+                </text>
+              </g>
+            ))}
+          </g>
+          {first.rows.map((r, i) => {
+            const y = ty(i);
+            return (
+              <g class={`er er--${r.kind}`} data-row={r.id}>
+                <text
+                  class="er__label"
+                  x={g.stacked ? g.L : 0}
+                  y={g.stacked ? y - 17 : y}
+                  dominant-baseline="central"
+                >
+                  {r.label}
+                </text>
+                <line class="er__track" x1={g.L} x2={g.R} y1={y} y2={y} />
+                <rect
+                  class="er__ci"
+                  x={r.ci ? x(r.ci[0], first.max) : g.L}
+                  width={r.ci ? x(r.ci[1], first.max) - x(r.ci[0], first.max) : 0}
+                  y={y - 6}
+                  height="12"
+                  opacity={r.ci ? 1 : 0}
+                />
+                <g class="er__dot" style={`transform: translateX(${x(r.value, first.max)}px)`}>
+                  <circle cx="0" cy={y} r={r.kind === 'model' ? 6 : 4.5} />
+                  <text class="er__val" x="12" y={y} dominant-baseline="central">
+                    {fmt(r.value, first.digits)}
+                  </text>
+                </g>
+              </g>
+            );
+          })}
+        </svg>
+      );
+    })
+  }
+
+  <p class="eval__note" id="eval-note" data-eval-note aria-live="polite">{first.note}</p>
+
+  <div class="eval__foot">
+    <span class="eval__legend"><i class="lg lg--model"></i>Model under test</span>
+    <span class="eval__legend"><i class="lg lg--ci"></i>95% bootstrap CI</span>
+    <span class="eval__legend"><i class="lg lg--oracle"></i>Perfect hindsight</span>
+  </div>
+
+  <details class="eval__table">
+    <summary class="label">Show as a table</summary>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th scope="col">Method</th>
+            {evalMetrics.map((m) => <th scope="col" class="num">{m.tab}</th>)}
+          </tr>
+        </thead>
+        <tbody>
+          {
+            first.rows.map((r) => (
+              <tr>
+                <th scope="row">{r.label}</th>
+                {evalMetrics.map((m) => {
+                  const row = m.rows.find((x) => x.id === r.id)!;
+                  return (
+                    <td class="num">
+                      {fmt(row.value, m.digits)}
+                      {row.ci && <span class="muted"> [{row.ci[0]}, {row.ci[1]}]</span>}
+                    </td>
+                  );
+                })}
+              </tr>
+            ))
+          }
+        </tbody>
+      </table>
+    </div>
+  </details>
+  <script type="application/json" data-eval-json set:html={JSON.stringify({ metrics: evalMetrics })} />
+</section>
+
+<style>
+  .eval__controls {
+    padding: var(--s3) var(--s4) 0;
+  }
+
+  .eval__title {
+    padding: var(--s3) var(--s4) 0;
+    color: var(--bone-2);
+    font-size: 0.875rem;
+  }
+
+  .eval__svg--narrow {
+    display: none;
+  }
+
+  .eval__svg {
+    width: 100%;
+    height: auto;
+    padding: var(--s2) var(--s4) 0;
+    overflow: visible;
+  }
+
+  .tick line {
+    stroke: var(--line);
+    stroke-dasharray: 2 4;
+  }
+
+  .tick text {
+    fill: var(--bone-4);
+    font-family: var(--mono);
+    font-size: 10.5px;
+  }
+
+  .er__label {
+    fill: var(--bone-2);
+    font-family: var(--sans);
+    font-size: 13px;
+  }
+
+  .er--model .er__label {
+    fill: var(--bone);
+    font-weight: 500;
+  }
+
+  .er__track {
+    stroke: var(--line-2);
+  }
+
+  .er__ci {
+    fill: rgb(236 232 225 / 0.12);
+    transition: opacity var(--t-med) var(--ease-out);
+  }
+
+  .er--model .er__ci {
+    fill: var(--signal-soft);
+    stroke: rgb(255 91 55 / 0.4);
+  }
+
+  .er__dot {
+    transition: transform 700ms var(--ease-out);
+  }
+
+  .er__dot circle {
+    fill: var(--bone-2);
+  }
+
+  .er--model .er__dot circle {
+    fill: var(--signal);
+  }
+
+  .er--floor .er__dot circle {
+    fill: var(--bone-4);
+  }
+
+  .er--oracle .er__dot circle {
+    fill: var(--ink-1);
+    stroke: var(--sand);
+    stroke-width: 1.5;
+  }
+
+  .er--oracle .er__label {
+    fill: var(--sand);
+  }
+
+  .er__val {
+    fill: var(--bone-2);
+    font-family: var(--mono);
+    font-size: 11px;
+  }
+
+  .er--model .er__val {
+    fill: var(--signal);
+  }
+
+  .eval__note {
+    padding: var(--s3) var(--s4) 0;
+    color: var(--bone);
+    font-size: var(--fs-small);
+    min-height: 4.2em;
+  }
+
+  .eval__foot {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--s2) var(--s5);
+    padding: var(--s3) var(--s4);
+    color: var(--bone-3);
+    font-size: 0.8125rem;
+  }
+
+  .eval__legend {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .lg {
+    display: inline-block;
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+  }
+
+  .lg--model {
+    background: var(--signal);
+  }
+
+  .lg--ci {
+    width: 18px;
+    height: 8px;
+    border-radius: 0;
+    background: var(--signal-soft);
+    border: 1px solid rgb(255 91 55 / 0.4);
+  }
+
+  .lg--oracle {
+    border: 1.5px solid var(--sand);
+  }
+
+  .eval__table {
+    border-top: 1px solid var(--line);
+  }
+
+  .eval__table summary {
+    padding: var(--s3) var(--s4);
+    cursor: pointer;
+    list-style-position: inside;
+  }
+
+  .eval__table summary:hover {
+    color: var(--bone);
+  }
+
+  .eval__table .table-wrap {
+    overflow-x: auto;
+    padding: 0 var(--s4) var(--s4);
+  }
+
+  .eval__table table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.8125rem;
+  }
+
+  .eval__table th,
+  .eval__table td {
+    padding: 0.4em 0.8em 0.4em 0;
+    border-bottom: 1px solid var(--line);
+    text-align: left;
+    font-weight: 400;
+    color: var(--bone-2);
+    white-space: nowrap;
+  }
+
+  .eval__table thead th {
+    font-family: var(--mono);
+    font-size: var(--fs-micro);
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    color: var(--bone-3);
+  }
+
+  .eval__table .num {
+    text-align: right;
+    font-family: var(--mono);
+  }
+
+  @media (max-width: 640px) {
+    .eval__svg--wide {
+      display: none;
+    }
+
+    .eval__svg--narrow {
+      display: block;
+      padding-inline: var(--s3);
+    }
+
+    .eval__svg--narrow .er__label {
+      font-size: 13px;
+    }
+
+    .eval__svg--narrow .er__val,
+    .eval__svg--narrow .tick text {
+      font-size: 11.5px;
+    }
+  }
+</style>
+
+<script>
+  interface Row {
+    id: string;
+    value: number;
+    ci?: [number, number];
+  }
+  interface Metric {
+    id: string;
+    title: string;
+    max: number;
+    ticks: number[];
+    digits: number;
+    rows: Row[];
+    note: string;
+  }
+
+  document.querySelectorAll<HTMLElement>('[data-eval]').forEach((root) => {
+    const cfg = JSON.parse(root.querySelector('[data-eval-json]')!.textContent!) as { metrics: Metric[] };
+    const tabs = [...root.querySelectorAll<HTMLButtonElement>('[data-metric]')];
+    const svgs = [...root.querySelectorAll<SVGSVGElement>('[data-eval-svg]')];
+    const title = root.querySelector<HTMLElement>('[data-eval-title]')!;
+    const note = root.querySelector<HTMLElement>('[data-eval-note]')!;
+    const NS = 'http://www.w3.org/2000/svg';
+
+    const show = (id: string) => {
+      const m = cfg.metrics.find((x) => x.id === id)!;
+      tabs.forEach((t) => t.setAttribute('aria-pressed', String(t.dataset.metric === id)));
+      title.textContent = m.title;
+      note.textContent = m.note;
+      for (const svg of svgs) {
+        const g = JSON.parse(svg.dataset.geo!) as { L: number; R: number; TOP: number; H: number };
+        const x = (v: number) => g.L + (v / m.max) * (g.R - g.L);
+        svg.querySelector<SVGGElement>('[data-ticks]')!.replaceChildren(
+          ...m.ticks.map((t) => {
+            const tg = document.createElementNS(NS, 'g');
+            tg.setAttribute('class', 'tick');
+            tg.setAttribute('transform', `translate(${x(t)} 0)`);
+            const line = document.createElementNS(NS, 'line');
+            line.setAttribute('y1', String(g.TOP - 6));
+            line.setAttribute('y2', String(g.H - 26));
+            const text = document.createElementNS(NS, 'text');
+            text.setAttribute('y', String(g.H - 10));
+            text.setAttribute('text-anchor', 'middle');
+            text.textContent = String(t);
+            tg.append(line, text);
+            return tg;
+          }),
+        );
+        for (const r of m.rows) {
+          const row = svg.querySelector<SVGGElement>(`[data-row="${r.id}"]`);
+          if (!row) continue;
+          row.querySelector<SVGGElement>('.er__dot')!.style.transform = `translateX(${x(r.value)}px)`;
+          row.querySelector('.er__val')!.textContent = r.value.toFixed(m.digits);
+          const ci = row.querySelector<SVGRectElement>('.er__ci')!;
+          if (r.ci) {
+            ci.setAttribute('x', String(x(r.ci[0])));
+            ci.setAttribute('width', String(x(r.ci[1]) - x(r.ci[0])));
+            ci.setAttribute('opacity', '1');
+          } else {
+            ci.setAttribute('opacity', '0');
+          }
+        }
+      }
+    };
+
+    tabs.forEach((t) => t.addEventListener('click', () => show(t.dataset.metric!)));
+  });
+</script>

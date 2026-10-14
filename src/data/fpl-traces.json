@@ -1,0 +1,247 @@
+{
+ "recordedAt": "2026-10-14T17:40:00Z",
+ "source": "https://20-215-33-13.sslip.io/api/query",
+ "traces": [
+  {
+   "id": "top-scorers",
+   "question": "Who scored the most goals in the 2023-24 season?",
+   "intent": "top_scorers",
+   "entities": {
+    "seasons": [
+     "2023-24"
+    ],
+    "stats": [
+     "goals_scored"
+    ]
+   },
+   "cypher": "MATCH (p:Player)-[st:SEASON_STATS]->(s:Season {id: $season})\nWITH p, SUM(st.total_points) AS total_points, SUM(st.goals) AS goals,\n     SUM(st.assists) AS assists, SUM(st.bonus) AS bonus, SUM(st.games) AS games,\n     collect(st.team) AS teams, collect(st.position) AS positions\nOPTIONAL MATCH (p)-[:PLAYS_POSITION]->(pos:Position)\nWITH p, total_points, goals, assists, bonus, games,\n     CASE WHEN size(teams) = 1 THEN teams[0] ELSE coalesce(p.last_team, last(teams)) END AS team,\n     CASE WHEN size(positions) = 1 THEN positions[0] ELSE pos.code END AS position\nWITH p, position, team, total_points, goals, assists, bonus, games,\n     total_points * 1.0 / CASE WHEN games = 0 THEN 1 ELSE games END AS points_per_game\nRETURN p.name AS player_name, position, team, total_points, goals, assists, bonus, games,\n       round(points_per_game, 2) AS points_per_game\nORDER BY goals DESC, total_points DESC, player_name\nLIMIT $limit",
+   "rows": [
+    {
+     "player_name": "Erling Haaland",
+     "position": "FWD",
+     "team": "Man City",
+     "total_points": 217,
+     "goals": 27,
+     "assists": 8,
+     "bonus": 29,
+     "games": 38,
+     "points_per_game": 5.71
+    },
+    {
+     "player_name": "Cole Palmer",
+     "position": "MID",
+     "team": "Chelsea",
+     "total_points": 244,
+     "goals": 22,
+     "assists": 13,
+     "bonus": 32,
+     "games": 38,
+     "points_per_game": 6.42
+    },
+    {
+     "player_name": "Alexander Isak",
+     "position": "FWD",
+     "team": "Newcastle",
+     "total_points": 172,
+     "goals": 21,
+     "assists": 4,
+     "bonus": 23,
+     "games": 38,
+     "points_per_game": 4.53
+    },
+    {
+     "player_name": "Phil Foden",
+     "position": "MID",
+     "team": "Man City",
+     "total_points": 230,
+     "goals": 19,
+     "assists": 8,
+     "bonus": 31,
+     "games": 38,
+     "points_per_game": 6.05
+    },
+    {
+     "player_name": "Ollie Watkins",
+     "position": "FWD",
+     "team": "Aston Villa",
+     "total_points": 228,
+     "goals": 19,
+     "assists": 18,
+     "bonus": 29,
+     "games": 38,
+     "points_per_game": 6.0
+    }
+   ],
+   "embeddings": [
+    {
+     "name": "Erling Haaland",
+     "similarity": 100.0,
+     "points": 217,
+     "position": "FWD",
+     "season": "2023-24"
+    },
+    {
+     "name": "Erling Haaland",
+     "similarity": 99.8,
+     "points": 181,
+     "position": "FWD",
+     "season": "2024-25"
+    },
+    {
+     "name": "Erling Haaland",
+     "similarity": 99.6,
+     "points": 239,
+     "position": "FWD",
+     "season": "2025-26"
+    }
+   ],
+   "ml": [],
+   "kgContext": "1. Player Name (player_name): Erling Haaland | Position (position): FWD | Team (team): Man City | Total Points (total_points): 217 | Goals (goals): 27 | Assists (assists): 8 | Bonus (bonus): 29 | Games (games): 38 | Points Per Game (points_per_game): 5.71\n2. Player Name (player_name): Cole Palmer | Position (position): MID | Team (team): Chelsea | Total Points (total_points): 244 | Goals (goals): 22 | Assists (assists): 13 | Bonus (bonus): 32 | Games (games): 38 | Points Per Game (points_per_game): 6.42\n3. Player Name (player_name): Alexander Isak | Position (position): FWD | Team (team): Newcastle | Total Points (total_points): 172 | Goals (goals): 21 | Assists (assists): 4 | Bonus (bonus): 23 | Games (games): 38 | Points Per Game (points_per_game): 4.53\n4. Player Name (player_name): Phil Foden | Position (position): MID | Team (team): Man City | Total Points (total_points): 230 | Goals (goals): 19 | Assists (assists): 8 | Bonus (bonus): 31 | Games (games): 38 | Points Per Game (points_per_game): 6.05\n5. Player Name (player_name): Ollie Watkins | Position (position): FWD | Team (team): Aston Villa | Total Points (total_points): 228 | Goals (goals): 19 | Assists (assists): 18 | Bonus (bonus): 29 | Games (games): 38 | Points Per Game (points_per_game): 6\n6. Player Name (player_name): Dominic Solanke | Position (position): FWD | Team (team): Bournemouth | Total Points (total_points): 175 | Goals (goals): 19 | Assists (assists): 3 | Bonus (bonus): 20 | Games (games): 38 | Points Per Game (points_per_game): 4.61\n7. Player Name (player_name): Mohamed Salah | Position (position): MID | Team (team): Liverpool | Total Points (total_points): 211 | Goals (goals): 18 | Assists (assists): 12 | Bonus (bonus): 24 | Games (games): 38 | Points Per Game (points_per_game): 5.55\n8. Player Name (player_name): Son Heung-min | Position (position): MID | Team (team): Spurs | Total Points (total_points): 213 | Goals (goals): 17 | Assists (assists): 10 | Bonus (bonus): 25 | Games (games): 38 | Points Per Game (points_per_game): 5.61\n9. Player Name (player_name): Bukayo Saka | Position (position): MID | Team (team): Arsenal | Total Points (total_points): 226 | Goals (goals): 16 | Assists (assists): 12 | Bonus (bonus): 29 | Games (games): 38 | Points Per Game (points_per_game): 5.95\n10. Player Name (player_name): Jarrod Bowen | Position (position): MID | Team (team): West Ham | Total Points (total_points): 182 | Goals (goals): 16 | Assists (assists): 6 | Bonus (bonus): 14 | Games (games): 38 | Points Per Game (points_per_game): 4.79",
+   "mlContext": "",
+   "answer": "Erling Haaland scored the most goals, with 27 goals in the 2023‑24 season.",
+   "model": "xgboost v3"
+  },
+  {
+   "id": "comparison",
+   "question": "Compare Mohamed Salah and Bukayo Saka in the 2024-25 season",
+   "intent": "player_comparison",
+   "entities": {
+    "players": [
+     "Mohamed Salah",
+     "Bukayo Saka"
+    ],
+    "seasons": [
+     "2024-25"
+    ]
+   },
+   "cypher": "MATCH (p:Player)-[st:SEASON_STATS]->(s:Season {id: $season})\nWHERE p.name IN [$player1, $player2]\nMATCH (p)-[:PLAYS_POSITION]->(pos:Position)\nOPTIONAL MATCH (p)-[:PLAYS_FOR]->(t:Team)\nWITH p, pos, coalesce(t.name, p.last_team) AS team_name,\n     SUM(st.total_points) AS total_points,\n     SUM(st.goals) AS goals,\n     SUM(st.assists) AS assists,\n     SUM(st.clean_sheets) AS clean_sheets,\n     SUM(st.bonus) AS bonus,\n     SUM(st.minutes) AS minutes,\n     SUM(st.ict_sum) AS ict_sum,\n     SUM(st.form_sum) AS form_sum,\n     SUM(st.value_sum) AS value_sum,\n     SUM(st.games) AS games\nRETURN p.name AS player_name, pos.code AS position, team_name,\n       total_points, goals, assists, clean_sheets, bonus, minutes,\n       round(ict_sum * 1.0 / games, 2) AS avg_ict_index,\n       round(form_sum * 1.0 / games, 2) AS avg_form,\n       round(value_sum / 10.0 / games, 2) AS avg_value_millions,\n       games\nORDER BY total_points DESC",
+   "rows": [
+    {
+     "player_name": "Mohamed Salah",
+     "position": "MID",
+     "team_name": "Liverpool",
+     "total_points": 344,
+     "goals": 29,
+     "assists": 18,
+     "clean_sheets": 15,
+     "bonus": 55,
+     "minutes": 3374,
+     "avg_ict_index": 12.53,
+     "avg_form": 9.47,
+     "avg_value_millions": 13.33,
+     "games": 38
+    },
+    {
+     "player_name": "Bukayo Saka",
+     "position": "MID",
+     "team_name": "Arsenal",
+     "total_points": 127,
+     "goals": 6,
+     "assists": 11,
+     "clean_sheets": 7,
+     "bonus": 18,
+     "minutes": 1724,
+     "avg_ict_index": 6.0,
+     "avg_form": 3.76,
+     "avg_value_millions": 10.24,
+     "games": 38
+    }
+   ],
+   "embeddings": [
+    {
+     "name": "Mohamed Salah",
+     "similarity": 100.0,
+     "points": 344,
+     "position": "MID",
+     "season": "2024-25"
+    },
+    {
+     "name": "Mohamed Salah",
+     "similarity": 99.6,
+     "points": 239,
+     "position": "MID",
+     "season": "2022-23"
+    },
+    {
+     "name": "Mohamed Salah",
+     "similarity": 99.6,
+     "points": 265,
+     "position": "MID",
+     "season": "2021-22"
+    }
+   ],
+   "ml": [],
+   "kgContext": "1. Player Name (player_name): Mohamed Salah | Position (position): MID | Team Name (team_name): Liverpool | Total Points (total_points): 344 | Goals (goals): 29 | Assists (assists): 18 | Clean Sheets (clean_sheets): 15 | Bonus (bonus): 55 | Minutes (minutes): 3374 | Avg Ict Index (avg_ict_index): 12.53 | Avg Form (avg_form): 9.47 | Avg Value Millions (avg_value_millions): 13.33 | Games (games): 38\n2. Player Name (player_name): Bukayo Saka | Position (position): MID | Team Name (team_name): Arsenal | Total Points (total_points): 127 | Goals (goals): 6 | Assists (assists): 11 | Clean Sheets (clean_sheets): 7 | Bonus (bonus): 18 | Minutes (minutes): 1724 | Avg Ict Index (avg_ict_index): 6 | Avg Form (avg_form): 3.76 | Avg Value Millions (avg_value_millions): 10.24 | Games (games): 38",
+   "mlContext": "",
+   "answer": "In the 2024-25 season, Mohamed Salah amassed 344 points, scoring 29 goals and providing 18 assists, while Bukayo Saka collected 127 points with 6 goals and 11 assists. Salah also kept 15 clean sheets and earned 55 bonus points, far outpacing Saka’s 7 clean sheets and 18 bonus points. Overall, Salah’s output was roughly three times the total points of Saka in the same season.",
+   "model": "xgboost v3"
+  },
+  {
+   "id": "captain",
+   "question": "Who should I captain next gameweek?",
+   "intent": "prediction",
+   "entities": {},
+   "cypher": "",
+   "rows": [],
+   "embeddings": [
+    {
+     "name": "Jean-Philippe Mateta",
+     "similarity": 39.3,
+     "points": 114,
+     "position": "FWD",
+     "season": "2025-26"
+    },
+    {
+     "name": "Jean-Philippe Mateta",
+     "similarity": 38.6,
+     "points": 61,
+     "position": "FWD",
+     "season": "2021-22"
+    },
+    {
+     "name": "Jean-Philippe Mateta",
+     "similarity": 38.6,
+     "points": 165,
+     "position": "FWD",
+     "season": "2023-24"
+    }
+   ],
+   "ml": [
+    {
+     "name": "Erling Haaland",
+     "position": "FWD",
+     "points": 8.0,
+     "fixture": "Ipswich (H)"
+    },
+    {
+     "name": "Bruno Borges Fernandes",
+     "position": "MID",
+     "points": 5.3,
+     "fixture": "Leeds (A)"
+    },
+    {
+     "name": "Rayan Cherki",
+     "position": "MID",
+     "points": 4.9,
+     "fixture": "Ipswich (H)"
+    },
+    {
+     "name": "Antoine Semenyo",
+     "position": "MID",
+     "points": 4.8,
+     "fixture": "Ipswich (H)"
+    },
+    {
+     "name": "Kiernan Dewsbury-Hall",
+     "position": "MID",
+     "points": 4.8,
+     "fixture": "Chelsea (H)"
+    }
+   ],
+   "kgContext": "",
+   "mlContext": "ML Predictions - Top 5 performers for next gameweek:\n- Erling Haaland (FWD): 8.0 pts vs Ipswich (H)\n- Bruno Borges Fernandes (MID): 5.3 pts vs Leeds (A)\n- Rayan Cherki (MID): 4.9 pts vs Ipswich (H)\n- Antoine Semenyo (MID): 4.8 pts vs Ipswich (H)\n- Kiernan Dewsbury-Hall (MID): 4.8 pts vs Chelsea (H)\n",
+   "answer": "Based on the ML model for the upcoming 2026‑27 gameweek, Erling Haaland is forecast to earn 8.0 points against Ipswich (home) and is the clear captain pick.",
+   "model": "xgboost v3"
+  }
+ ]
+}

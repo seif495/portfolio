@@ -1,0 +1,322 @@
+---
+import SectionHead from './SectionHead.astro';
+import { alsoUsed, tech, techCategories, type TechId } from '../content/tech';
+import { workItems } from '../content/work';
+
+const SHORT: Record<string, string> = {
+  fpl: 'FPL',
+  ransomware: 'Ransomware',
+  xcv: 'X-CV',
+  arabic: 'Arabic QA',
+  thesis: 'Thesis',
+  advansys: 'Advansys',
+  enpal: 'Enpal',
+  dawar: 'Dawar',
+};
+
+const cols = workItems.map((w) => ({ ...w, short: SHORT[w.id] ?? w.label }));
+const usedBy = (t: TechId) => cols.filter((w) => w.stack.includes(t));
+
+const groups = techCategories
+  .map((cat) => ({
+    cat,
+    rows: (Object.keys(tech) as TechId[])
+      .filter((t) => tech[t].cat === cat)
+      .map((t) => ({ id: t, label: tech[t].label, users: usedBy(t) }))
+      .filter((r) => r.users.length > 0)
+      .sort((a, b) => b.users.length - a.users.length || a.label.localeCompare(b.label)),
+  }))
+  .filter((g) => g.rows.length > 0);
+
+const firstRole = cols.findIndex((c) => c.kind === 'role');
+---
+
+<section class="section toolkit" id="toolkit" aria-labelledby="toolkit-title">
+  <div class="wrap">
+    <SectionHead index="03" label="Toolkit" title="Tools, and where I actually used them." id="toolkit-title">
+      <p>
+        No proficiency bars. Each mark connects a tool to a project or role on this page; for team projects, only my
+        own part counts.
+      </p>
+    </SectionHead>
+
+    <div class="matrix-wrap" data-reveal>
+      <table class="matrix" data-matrix>
+        <caption class="visually-hidden">Tools by project and role</caption>
+        <thead>
+          <tr>
+            <th scope="col" class="matrix__corner"><span class="label">Tool</span></th>
+            {
+              cols.map((c, i) => (
+                <th scope="col" class:list={['matrix__col', { 'is-split': i === firstRole }]} data-col={c.id}>
+                  <a href={c.anchor}>
+                    <span class="matrix__kind label">{c.kind === 'role' ? 'Role' : c.kind === 'research' ? 'Thesis' : 'Project'}</span>
+                    <span class="matrix__name">{c.short}</span>
+                  </a>
+                </th>
+              ))
+            }
+            <th scope="col" class="matrix__count"><span class="label">Uses</span></th>
+          </tr>
+        </thead>
+        {
+          groups.map((g) => (
+            <tbody>
+              <tr class="matrix__group">
+                <th scope="colgroup" colspan={cols.length + 2}>
+                  <span class="label">{g.cat}</span>
+                </th>
+              </tr>
+              {g.rows.map((r) => (
+                <tr data-row>
+                  <th scope="row" class="matrix__tool">{r.label}</th>
+                  {cols.map((c, i) => {
+                    const on = r.users.some((u) => u.id === c.id);
+                    return (
+                      <td class:list={['matrix__cell', { 'is-on': on, 'is-split': i === firstRole }]} data-col={c.id}>
+                        {on ? (
+                          <>
+                            <span class="mark" aria-hidden="true" />
+                            <span class="visually-hidden">Used</span>
+                          </>
+                        ) : (
+                          <span class="visually-hidden">Not used</span>
+                        )}
+                      </td>
+                    );
+                  })}
+                  <td class="matrix__n mono">{r.users.length}</td>
+                </tr>
+              ))}
+            </tbody>
+          ))
+        }
+      </table>
+    </div>
+
+    <div class="toollist" data-reveal>
+      {
+        groups.map((g) => (
+          <section class="toollist__group">
+            <h3 class="label">{g.cat}</h3>
+            <ul>
+              {g.rows.map((r) => (
+                <li>
+                  <span class="toollist__name">{r.label}</span>
+                  <span class="toollist__where">
+                    {r.users.map((u) => (
+                      <a class="tag" href={u.anchor}>
+                        {u.short}
+                      </a>
+                    ))}
+                  </span>
+                </li>
+              ))}
+            </ul>
+          </section>
+        ))
+      }
+    </div>
+
+    <p class="toolkit__also" data-reveal>
+      <span class="label">Also on the résumé</span>
+      {alsoUsed.join(' · ')}
+    </p>
+  </div>
+</section>
+
+<style>
+  .section {
+    padding-top: clamp(var(--s9), 10vw, var(--s10));
+  }
+
+  .matrix-wrap {
+    margin-top: clamp(var(--s7), 6vw, var(--s8));
+  }
+
+  .matrix {
+    width: 100%;
+    border-collapse: collapse;
+    table-layout: fixed;
+  }
+
+  .matrix th,
+  .matrix td {
+    padding: 0;
+    font-weight: 400;
+  }
+
+  .matrix__corner {
+    width: 28%;
+    text-align: left;
+    vertical-align: bottom;
+    padding-bottom: var(--s3) !important;
+  }
+
+  .matrix__count {
+    width: 4.5rem;
+    text-align: right;
+    vertical-align: bottom;
+    padding-bottom: var(--s3) !important;
+  }
+
+  .matrix__col {
+    vertical-align: bottom;
+    padding-bottom: var(--s3) !important;
+    text-align: center;
+  }
+
+  .matrix__col a {
+    display: inline-flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 2px;
+    padding: 4px 2px;
+  }
+
+  .matrix__kind {
+    font-size: 0.6rem;
+    color: var(--bone-4);
+  }
+
+  .matrix__name {
+    font-size: 0.875rem;
+    color: var(--bone);
+    white-space: nowrap;
+  }
+
+  .matrix__col a:hover .matrix__name {
+    color: var(--signal);
+  }
+
+  .matrix__group th {
+    padding: var(--s5) 0 var(--s2) !important;
+    text-align: left;
+    border-bottom: 1px solid var(--line-2);
+  }
+
+  .matrix__tool {
+    padding: 0.5em var(--s3) 0.5em 0 !important;
+    text-align: left;
+    font-size: var(--fs-small);
+    color: var(--bone-2);
+    border-bottom: 1px solid var(--line);
+  }
+
+  .matrix__cell {
+    text-align: center;
+    border-bottom: 1px solid var(--line);
+    transition: background var(--t-fast) var(--ease-out);
+  }
+
+  .matrix__cell.is-split,
+  .matrix__col.is-split {
+    border-left: 1px solid var(--line-2);
+  }
+
+  .mark {
+    display: inline-block;
+    width: 9px;
+    height: 9px;
+    border-radius: 50%;
+    background: var(--bone);
+    vertical-align: middle;
+    transition:
+      background var(--t-fast) var(--ease-out),
+      transform var(--t-fast) var(--ease-out);
+  }
+
+  .matrix__n {
+    text-align: right;
+    font-size: 0.8rem;
+    color: var(--bone-3);
+    border-bottom: 1px solid var(--line);
+  }
+
+  /* Crosshair highlight */
+  .matrix tr[data-row]:hover .matrix__tool,
+  .matrix tr[data-row].is-hot .matrix__tool {
+    color: var(--bone);
+  }
+
+  .matrix tr[data-row]:hover .matrix__cell,
+  .matrix__cell.is-col {
+    background: var(--ink-2);
+  }
+
+  .matrix tr[data-row]:hover .mark,
+  .matrix__cell.is-col .mark {
+    background: var(--signal);
+  }
+
+  .toollist {
+    display: none;
+  }
+
+  .toolkit__also {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--s2) var(--s4);
+    align-items: baseline;
+    margin-top: var(--s6);
+    color: var(--bone-2);
+    font-size: var(--fs-small);
+  }
+
+  @media (max-width: 900px) {
+    .matrix-wrap {
+      display: none;
+    }
+
+    .toollist {
+      display: grid;
+      gap: var(--s6);
+      margin-top: var(--s7);
+    }
+
+    .toollist__group ul {
+      margin-top: var(--s3);
+      border-top: 1px solid var(--line-2);
+    }
+
+    .toollist__group li {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-between;
+      gap: var(--s2) var(--s3);
+      padding: var(--s3) 0;
+      border-bottom: 1px solid var(--line);
+    }
+
+    .toollist__name {
+      color: var(--bone);
+      font-size: var(--fs-small);
+    }
+
+    .toollist__where {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 4px;
+    }
+
+    .toollist__where .tag {
+      min-height: 28px;
+    }
+  }
+</style>
+
+<script>
+  document.querySelectorAll<HTMLTableElement>('[data-matrix]').forEach((table) => {
+    const heads = table.querySelectorAll<HTMLElement>('th[data-col]');
+    const setCol = (id: string | null) => {
+      table.querySelectorAll<HTMLElement>('td[data-col]').forEach((td) => td.classList.toggle('is-col', td.dataset.col === id));
+    };
+    heads.forEach((th) => {
+      th.addEventListener('pointerenter', () => setCol(th.dataset.col!));
+      th.addEventListener('pointerleave', () => setCol(null));
+      const a = th.querySelector('a');
+      a?.addEventListener('focus', () => setCol(th.dataset.col!));
+      a?.addEventListener('blur', () => setCol(null));
+    });
+  });
+</script>

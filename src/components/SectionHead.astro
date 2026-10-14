@@ -1,0 +1,66 @@
+---
+interface Props {
+  index: string;
+  label: string;
+  title: string;
+  id: string;
+}
+
+const { index, label, title, id } = Astro.props;
+---
+
+<header class="section-head" data-reveal>
+  <p class="section-head__rail label"><span class="section-head__index">§{index}</span>{label}</p>
+  <div class="section-head__main">
+    <h2 class="section-head__title serif" id={id}>{title}</h2>
+    {
+      Astro.slots.has('default') && (
+        <div class="section-head__intro">
+          <slot />
+        </div>
+      )
+    }
+  </div>
+</header>
+
+<style>
+  .section-head {
+    display: grid;
+    grid-template-columns: minmax(0, 3fr) minmax(0, 9fr);
+    gap: var(--s5);
+    padding-top: var(--s5);
+    border-top: 1px solid var(--line-2);
+  }
+
+  .section-head__rail {
+    display: flex;
+    gap: 1.2em;
+    padding-top: 0.6em;
+  }
+
+  .section-head__index {
+    color: var(--signal);
+  }
+
+  .section-head__title {
+    font-size: var(--fs-h1);
+    line-height: 1;
+    letter-spacing: -0.01em;
+    max-width: 18ch;
+  }
+
+  .section-head__intro {
+    max-width: 60ch;
+    margin-top: var(--s5);
+    color: var(--bone-2);
+    font-size: var(--fs-lead);
+    line-height: 1.5;
+  }
+
+  @media (max-width: 860px) {
+    .section-head {
+      grid-template-columns: minmax(0, 1fr);
+      gap: var(--s4);
+    }
+  }
+</style>

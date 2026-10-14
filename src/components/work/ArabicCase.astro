@@ -1,0 +1,195 @@
+---
+import CaseHeader from './CaseHeader.astro';
+import { arabic } from '../../content/work';
+
+const { lesson } = arabic;
+---
+
+<article class="case" id="arabic" aria-labelledby="arabic-title">
+  <CaseHeader {...arabic} />
+
+  <div class="ar-body">
+    <div data-reveal>
+      <p class="label">Pipeline</p>
+      <dl class="kv ar-steps">
+        {
+          arabic.steps.map((s, i) => (
+            <div>
+              <dt>
+                {String(i + 1).padStart(2, '0')} {s.k}
+              </dt>
+              <dd>{s.v}</dd>
+            </div>
+          ))
+        }
+      </dl>
+    </div>
+
+    <figure class="instrument lesson" aria-labelledby="lesson-title" data-reveal>
+      <div class="instrument__bar">
+        <span><strong id="lesson-title">A retrieval failure, explained</strong></span>
+        <span>From the Milestone 3 report</span>
+      </div>
+      <div class="lesson__body">
+        <div class="lesson__item">
+          <p class="label">Question · formal Arabic</p>
+          <p class="lesson__ar" lang="ar" dir="rtl">{lesson.query}</p>
+          <p class="lesson__gloss">{lesson.queryGloss}</p>
+        </div>
+        <div class="lesson__link" aria-hidden="true">
+          <span class="lesson__line"></span>
+          <span class="lesson__x">no strong match</span>
+          <span class="lesson__line"></span>
+        </div>
+        <div class="lesson__item">
+          <p class="label">Where the answer lived · Egyptian dialect</p>
+          <p class="lesson__ar" lang="ar" dir="rtl">…{lesson.passage}…</p>
+          <p class="lesson__gloss">{lesson.passageGloss}</p>
+        </div>
+        <ol class="lesson__rank" aria-label="What reached the model">
+          <li><span class="mono">top-4</span>Chunks that repeat “Taj Mahal” elsewhere in the corpus</li>
+          <li class="is-out"><span class="mono">not retrieved</span><s>The chunk containing the answer</s></li>
+          <li class="is-guard"><span class="mono">response</span><span><code>OUT_OF_DOMAIN</code>, by design, instead of a guess</span></li>
+        </ol>
+      </div>
+      <figcaption class="lesson__caption">
+        <p>{lesson.finding}</p>
+        <p class="lesson__fix">{lesson.fix}</p>
+      </figcaption>
+    </figure>
+  </div>
+</article>
+
+<style>
+  .ar-body {
+    display: grid;
+    grid-template-columns: minmax(0, 5fr) minmax(0, 7fr);
+    gap: clamp(var(--s6), 5vw, var(--s9));
+    margin-top: var(--s7);
+    align-items: start;
+  }
+
+  .ar-steps {
+    margin-top: var(--s4);
+  }
+
+  .ar-steps dt {
+    white-space: nowrap;
+  }
+
+  .lesson {
+    margin: 0;
+  }
+
+  .lesson__body {
+    padding: var(--s4);
+  }
+
+  .lesson__item + .lesson__item {
+    margin-top: 0;
+  }
+
+  .lesson__ar {
+    margin-top: var(--s2);
+    font-family: var(--arabic);
+    font-size: clamp(1.5rem, 1.2rem + 1.2vw, 2.1rem);
+    line-height: 1.5;
+    color: var(--bone);
+    text-align: right;
+  }
+
+  .lesson__gloss {
+    color: var(--bone-3);
+    font-size: 0.875rem;
+  }
+
+  .lesson__link {
+    display: flex;
+    align-items: center;
+    gap: var(--s3);
+    margin: var(--s4) 0;
+  }
+
+  .lesson__line {
+    flex: 1;
+    height: 1px;
+    background: repeating-linear-gradient(90deg, var(--signal) 0 4px, transparent 4px 8px);
+  }
+
+  .lesson__x {
+    font-family: var(--mono);
+    font-size: var(--fs-micro);
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--signal);
+  }
+
+  .lesson__rank {
+    margin-top: var(--s5);
+    border-top: 1px solid var(--line);
+  }
+
+  .lesson__rank li {
+    display: grid;
+    grid-template-columns: 8rem minmax(0, 1fr);
+    gap: var(--s3);
+    padding: var(--s2) 0;
+    border-bottom: 1px solid var(--line);
+    color: var(--bone-2);
+    font-size: 0.875rem;
+  }
+
+  .lesson__rank .mono {
+    font-size: var(--fs-micro);
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: var(--bone-3);
+    padding-top: 0.15em;
+  }
+
+  .lesson__rank .is-out {
+    color: var(--bone-3);
+  }
+
+  .lesson__rank .is-out s {
+    text-decoration-color: var(--signal);
+  }
+
+  .lesson__rank .is-out .mono {
+    color: var(--signal);
+  }
+
+  .lesson__rank .is-guard code {
+    font-family: var(--mono);
+    color: var(--steel);
+  }
+
+  .lesson__caption {
+    padding: var(--s4);
+    border-top: 1px solid var(--line);
+    color: var(--bone-2);
+    font-size: var(--fs-small);
+  }
+
+  .lesson__fix {
+    margin-top: var(--s3);
+    color: var(--bone);
+  }
+
+  @media (max-width: 960px) {
+    .ar-body {
+      grid-template-columns: minmax(0, 1fr);
+    }
+  }
+
+  @media (max-width: 560px) {
+    .lesson__rank li {
+      grid-template-columns: minmax(0, 1fr);
+      gap: 2px;
+    }
+
+    .ar-steps dt {
+      white-space: normal;
+    }
+  }
+</style>

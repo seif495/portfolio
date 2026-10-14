@@ -1,0 +1,161 @@
+---
+import type { Link } from '../../content/work';
+
+interface Props {
+  id: string;
+  index: string;
+  title: string;
+  tagline: string;
+  role: string;
+  period: string;
+  status: string;
+  links: Link[];
+  live?: boolean;
+}
+
+const { id, index, title, tagline, role, period, status, links, live = false } = Astro.props;
+---
+
+<header class="case-head" data-reveal>
+  <div class="case-head__title">
+    <p class="case-head__index serif" aria-hidden="true">{index}</p>
+    <div>
+      <h3 class="serif" id={`${id}-title`}>{title}</h3>
+      <p class="case-head__tagline">{tagline}</p>
+    </div>
+  </div>
+  <dl class="case-head__meta">
+    <div>
+      <dt class="label">Role</dt>
+      <dd>{role}</dd>
+    </div>
+    <div>
+      <dt class="label">When</dt>
+      <dd>{period}</dd>
+    </div>
+    <div>
+      <dt class="label">Status</dt>
+      <dd>
+        {live && <span class="dot dot--live" aria-hidden="true" />}
+        {status}
+      </dd>
+    </div>
+    {
+      links.length > 0 && (
+        <div class="case-head__links">
+          <dt class="visually-hidden">Links</dt>
+          <dd>
+            <ul>
+              {links.map((l) => (
+                <li>
+                  <a class="link" href={l.href} target="_blank" rel="noopener">
+                    {l.label} <span class="arrow" aria-hidden="true">↗</span>
+                  </a>
+                </li>
+              ))}
+            </ul>
+          </dd>
+        </div>
+      )
+    }
+    <slot name="meta" />
+  </dl>
+</header>
+
+<style>
+  .case-head {
+    display: grid;
+    grid-template-columns: minmax(0, 8fr) minmax(0, 4fr);
+    gap: var(--s6) clamp(var(--s6), 5vw, var(--s9));
+    align-items: start;
+  }
+
+  .case-head__title {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr);
+    gap: clamp(var(--s4), 2.5vw, var(--s6));
+  }
+
+  .case-head__index {
+    font-size: clamp(3.2rem, 2rem + 4vw, 6rem);
+    line-height: 0.82;
+    color: transparent;
+    -webkit-text-stroke: 1px var(--line-3);
+  }
+
+  h3 {
+    font-size: var(--fs-h2);
+    line-height: 1.02;
+    letter-spacing: -0.01em;
+  }
+
+  .case-head__tagline {
+    max-width: 46ch;
+    margin-top: var(--s4);
+    color: var(--bone-2);
+    font-size: var(--fs-lead);
+    line-height: 1.45;
+  }
+
+  .case-head__meta {
+    display: grid;
+    gap: var(--s3);
+    padding-top: var(--s2);
+  }
+
+  .case-head__meta > :global(div) {
+    display: grid;
+    grid-template-columns: 5.2rem minmax(0, 1fr);
+    gap: var(--s3);
+    align-items: baseline;
+  }
+
+  .case-head__meta :global(dd) {
+    font-size: var(--fs-small);
+    color: var(--bone);
+    display: flex;
+    align-items: baseline;
+    gap: 0.6em;
+  }
+
+  .case-head__meta .dot {
+    align-self: center;
+  }
+
+  .case-head__links {
+    margin-top: var(--s2);
+  }
+
+  .case-head__links dd {
+    grid-column: 1 / -1;
+  }
+
+  .case-head__links ul {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--s2) var(--s5);
+  }
+
+  .case-head__links li {
+    min-height: 32px;
+    display: flex;
+    align-items: center;
+  }
+
+  @media (max-width: 960px) {
+    .case-head {
+      grid-template-columns: minmax(0, 1fr);
+    }
+  }
+
+  @media (max-width: 560px) {
+    .case-head__title {
+      grid-template-columns: minmax(0, 1fr);
+      gap: var(--s3);
+    }
+
+    .case-head__index {
+      font-size: 3rem;
+    }
+  }
+</style>
