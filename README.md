@@ -29,7 +29,7 @@ Node 22.12 or newer.
 | `src/components/` | Page sections; `work/` holds one component per case study |
 | `src/scripts/` | Client behaviour for the graph, trace tabs, lab and scroll reveals |
 | `src/styles/global.css` | Design tokens and shared primitives |
-| `public/` | Résumé PDF, social image, favicons, robots and sitemap |
+| `public/` | Résumé PDF, social image, favicons, robots and sitemap; `work/` holds the Pitch Me screenshot |
 
 Content and presentation are separate: to change a fact, edit `src/content/` or `src/data/`; the hero graph and the
 toolkit matrix are derived from `workItems[].stack`, so a tool added there appears in both.
@@ -46,6 +46,8 @@ Every figure on the page is traceable:
   `Model Fine-tuning/Models Workspaces/X-Ray Fracture Detection/module2_notebook.ipynb`.
 - **Arabic QA** (`seif495/arabic-nlp-qa-rag`): `README.md` and `docs/reports/ms3_report.md`.
 - **Experience, education, recognition**: the October 2026 résumé.
+- **FPL screenshot** (`public/work/pitchme-home-*.webp`): the live app's home page, captured 14 Oct 2026 at
+  1440×900 (and 960×600). Recapture it when the app's design changes, and update the caption in `src/content/work.ts`.
 
 When a project changes, update the numbers at the source above and then here. To refresh the recorded traces, re-run
 the three questions in `src/data/fpl-traces.json` against `POST /api/query` and replace the file.
