@@ -1,6 +1,7 @@
 ---
 import CaseHeader from './CaseHeader.astro';
 import CaseBrief from './CaseBrief.astro';
+import CaseMore from './CaseMore.astro';
 import EvalChart from './EvalChart.astro';
 import { fpl } from '../../content/work';
 import traces from '../../data/fpl-traces.json';
@@ -289,64 +290,66 @@ const { modelStory, screenshot: shot } = fpl;
     </p>
   </section>
 
-  <!-- Model story + evaluation -->
-  <div class="fpl-model">
-    <div class="story" data-reveal>
-      <p class="label">The model had to earn its place</p>
-      <ol class="story__steps">
-        <li>
-          <span class="story__fig serif"><s>R² 0.87</s></span>
-          <p>{modelStory.before}</p>
-        </li>
-        <li>
-          <span class="story__fig serif signal">27×</span>
-          <p>{modelStory.audit}</p>
-        </li>
-        <li>
-          <span class="story__fig serif">R² 0.32</span>
-          <p>{modelStory.after}</p>
-        </li>
-      </ol>
-      <p class="story__proof">
-        The audit is now part of the evaluation: scrambling every outcome from mid-season onwards changes 0 of
-        148,300 earlier feature rows, and the test suite checks for row duplication and look-ahead.
-      </p>
+  <CaseMore id="fpl-deep" title="Evaluation, operations and limits">
+    <!-- Model story + evaluation -->
+    <div class="fpl-model">
+      <div class="story" data-reveal>
+        <p class="label">The model had to earn its place</p>
+        <ol class="story__steps">
+          <li>
+            <span class="story__fig serif"><s>R² 0.87</s></span>
+            <p>{modelStory.before}</p>
+          </li>
+          <li>
+            <span class="story__fig serif signal">27×</span>
+            <p>{modelStory.audit}</p>
+          </li>
+          <li>
+            <span class="story__fig serif">R² 0.32</span>
+            <p>{modelStory.after}</p>
+          </li>
+        </ol>
+        <p class="story__proof">
+          The audit is now part of the evaluation: scrambling every outcome from mid-season onwards changes 0 of
+          148,300 earlier feature rows, and the test suite checks for row duplication and look-ahead.
+        </p>
+      </div>
+      <EvalChart />
     </div>
-    <EvalChart />
-  </div>
 
-  <!-- Operations -->
-  <div class="fpl-ops" data-reveal>
-    <div>
-      <p class="label">How it keeps itself current</p>
-      <ol class="ops">
-        {
-          fpl.ops.map((o) => (
-            <li>
-              <span class="ops__when mono">{o.when}</span>
-              <p>{o.what}</p>
-            </li>
-          ))
-        }
-      </ol>
+    <!-- Operations -->
+    <div class="fpl-ops" data-reveal>
+      <div>
+        <p class="label">How it keeps itself current</p>
+        <ol class="ops">
+          {
+            fpl.ops.map((o) => (
+              <li>
+                <span class="ops__when mono">{o.when}</span>
+                <p>{o.what}</p>
+              </li>
+            ))
+          }
+        </ol>
+      </div>
+      <div>
+        <dl class="kv">
+          {
+            fpl.facts.map((f) => (
+              <div>
+                <dt>{f.k}</dt>
+                <dd>{f.v}</dd>
+              </div>
+            ))
+          }
+        </dl>
+        <p class="label limits-title">Known limits</p>
+        <ul class="limits">
+          {fpl.limits.map((l) => <li>{l}</li>)}
+        </ul>
+      </div>
     </div>
-    <div>
-      <dl class="kv">
-        {
-          fpl.facts.map((f) => (
-            <div>
-              <dt>{f.k}</dt>
-              <dd>{f.v}</dd>
-            </div>
-          ))
-        }
-      </dl>
-      <p class="label limits-title">Known limits</p>
-      <ul class="limits">
-        {fpl.limits.map((l) => <li>{l}</li>)}
-      </ul>
-    </div>
-  </div>
+  </CaseMore>
 </article>
 
 <style>
@@ -891,6 +894,46 @@ const { modelStory, screenshot: shot } = fpl;
   }
 
   @media (max-width: 640px) {
+    .code__pre[data-collapsed='true'] {
+      max-height: calc(4 * 1.65em + 1.5rem);
+    }
+
+    .features {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      padding-top: var(--s3);
+    }
+
+    .features div {
+      padding: 0;
+      border: 0;
+    }
+
+    .features dt {
+      display: inline-flex;
+      align-items: center;
+      min-height: 28px;
+      padding: 0 0.6em;
+      border: 1px solid var(--line-2);
+      font-family: var(--mono);
+      font-size: 0.75rem;
+      color: var(--bone-2);
+    }
+
+    .features dd {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      overflow: hidden;
+      clip: rect(0 0 0 0);
+      white-space: nowrap;
+    }
+
+    .snapshot__in {
+      margin-top: var(--s5);
+    }
+
     .trace .instrument__bar {
       flex-direction: column;
       align-items: flex-start;

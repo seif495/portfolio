@@ -1,29 +1,81 @@
 ---
 import { profile } from '../content/profile';
+import { fpl } from '../content/work';
+
+const linkedinHandle = profile.links.linkedin.replace(/^https?:\/\/(www\.)?linkedin\.com\//, '').replace(/\/$/, '');
+const githubHandle = profile.links.github.replace(/^https?:\/\/github\.com\//, '');
 ---
 
 <section class="contact" id="contact" aria-labelledby="contact-title">
   <div class="wrap">
-    <div class="contact__inner" data-reveal>
-      <p class="label"><span class="signal">§05</span>&emsp;Contact</p>
-      <h2 class="contact__title serif" id="contact-title">
-        Have a system that needs <em>building, or testing?</em>
-      </h2>
-      <p class="contact__text">
-        I’m open to roles in AI and ML engineering, data science and data engineering. Email is the fastest way to
-        reach me.
-      </p>
-      <div class="contact__email">
-        <a class="contact__address serif" href={`mailto:${profile.email}`}>{profile.email}</a>
-        <button type="button" class="btn contact__copy" data-copy={profile.email}>
-          <span data-copy-label>Copy</span>
-        </button>
+    <div class="contact__inner">
+      <p class="label" data-reveal><span class="signal">§05</span>&emsp;Contact</p>
+      <div class="contact__grid">
+        <div class="contact__main" data-reveal>
+          <h2 class="contact__title serif" id="contact-title">
+            Have a system that needs <em>building, or testing?</em>
+          </h2>
+          <p class="contact__text">
+            I’m open to roles in AI and ML engineering, data science and data engineering. Email is the fastest way to
+            reach me.
+          </p>
+          <div class="contact__email">
+            <a class="contact__address serif" href={`mailto:${profile.email}`}>{profile.email}</a>
+            <button type="button" class="btn contact__copy" data-copy={profile.email}>
+              <span data-copy-label>Copy</span>
+            </button>
+          </div>
+        </div>
+
+        <aside class="instrument card" aria-labelledby="card-title" data-reveal>
+          <div class="instrument__bar">
+            <span><span class="dot dot--live" aria-hidden="true"></span>&ensp;<strong id="card-title">contact://seif-moheb</strong></span>
+            <span data-clock>{profile.location}</span>
+          </div>
+          <dl class="card__rows">
+            <div>
+              <dt>LinkedIn</dt>
+              <dd>
+                <a class="link" href={profile.links.linkedin} target="_blank" rel="me noopener">
+                  {linkedinHandle} <span class="arrow" aria-hidden="true">↗</span>
+                </a>
+              </dd>
+            </div>
+            <div>
+              <dt>GitHub</dt>
+              <dd>
+                <a class="link" href={profile.links.github} target="_blank" rel="me noopener">
+                  {githubHandle} <span class="arrow" aria-hidden="true">↗</span>
+                </a>
+              </dd>
+            </div>
+            <div>
+              <dt>Résumé</dt>
+              <dd>
+                <a class="link" href={profile.links.resume} target="_blank" rel="noopener">
+                  PDF, updated Oct 2026 <span class="arrow" aria-hidden="true">↗</span>
+                </a>
+              </dd>
+            </div>
+            <div>
+              <dt>Live app</dt>
+              <dd>
+                <a class="link" href={fpl.links[0]!.href} target="_blank" rel="noopener">
+                  Pitch Me, the FPL assistant <span class="arrow" aria-hidden="true">↗</span>
+                </a>
+              </dd>
+            </div>
+            <div>
+              <dt>Based in</dt>
+              <dd>{profile.location}</dd>
+            </div>
+            <div>
+              <dt>Write in</dt>
+              <dd>English, German or Arabic</dd>
+            </div>
+          </dl>
+        </aside>
       </div>
-      <ul class="contact__links">
-        <li><a class="link" href={profile.links.linkedin} target="_blank" rel="me noopener">LinkedIn <span class="arrow" aria-hidden="true">↗</span></a></li>
-        <li><a class="link" href={profile.links.github} target="_blank" rel="me noopener">GitHub <span class="arrow" aria-hidden="true">↗</span></a></li>
-        <li><a class="link" href={profile.links.resume} target="_blank" rel="noopener">Résumé PDF <span class="arrow" aria-hidden="true">↗</span></a></li>
-      </ul>
     </div>
   </div>
 </section>
@@ -36,6 +88,13 @@ import { profile } from '../content/profile';
   .contact__inner {
     padding-top: var(--s5);
     border-top: 1px solid var(--line-2);
+  }
+
+  .contact__grid {
+    display: grid;
+    grid-template-columns: minmax(0, 7fr) minmax(0, 5fr);
+    gap: var(--s7) clamp(var(--s6), 5vw, var(--s9));
+    align-items: end;
   }
 
   .contact__title {
@@ -51,7 +110,7 @@ import { profile } from '../content/profile';
   }
 
   .contact__text {
-    max-width: 56ch;
+    max-width: 52ch;
     margin-top: var(--s5);
     color: var(--bone-2);
     font-size: var(--fs-lead);
@@ -85,17 +144,50 @@ import { profile } from '../content/profile';
     min-height: 40px;
   }
 
-  .contact__links {
-    display: flex;
-    flex-wrap: wrap;
-    gap: var(--s2) var(--s6);
-    margin-top: var(--s6);
+  /* ---------- Card ---------- */
+  .card__rows > div {
+    display: grid;
+    grid-template-columns: 6.5rem minmax(0, 1fr);
+    gap: var(--s3);
+    align-items: baseline;
+    padding: var(--s3) var(--s4);
+    border-bottom: 1px solid var(--line);
   }
 
-  .contact__links li {
-    min-height: 36px;
-    display: flex;
-    align-items: center;
+  .card__rows > div:last-child {
+    border-bottom: 0;
+  }
+
+  .card__rows dt {
+    font-family: var(--mono);
+    font-size: var(--fs-micro);
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--bone-3);
+  }
+
+  .card__rows dd {
+    font-size: var(--fs-small);
+    color: var(--bone);
+    overflow-wrap: anywhere;
+  }
+
+  @media (max-width: 960px) {
+    .contact__grid {
+      grid-template-columns: minmax(0, 1fr);
+    }
+
+    .card {
+      max-width: 560px;
+    }
+  }
+
+  @media (max-width: 420px) {
+    .card__rows > div {
+      grid-template-columns: minmax(0, 1fr);
+      gap: 2px;
+      padding-inline: var(--s3);
+    }
   }
 </style>
 
@@ -117,4 +209,27 @@ import { profile } from '../content/profile';
       setTimeout(() => (label.textContent = 'Copy'), 2200);
     });
   });
+
+  // Local time in Cairo, with the current UTC offset (Egypt observes summer time).
+  const clock = document.querySelector<HTMLElement>('[data-clock]');
+  if (clock) {
+    try {
+      const time = new Intl.DateTimeFormat('en-GB', {
+        timeZone: 'Africa/Cairo',
+        hour: '2-digit',
+        minute: '2-digit',
+      });
+      const offset = new Intl.DateTimeFormat('en-GB', { timeZone: 'Africa/Cairo', timeZoneName: 'shortOffset' });
+      const tick = () => {
+        const now = new Date();
+        const tz = offset.formatToParts(now).find((p) => p.type === 'timeZoneName')?.value ?? '';
+        clock.textContent = `Cairo ${time.format(now)} ${tz}`.trim();
+        clock.setAttribute('title', 'Local time in Cairo');
+      };
+      tick();
+      window.setInterval(tick, 30_000);
+    } catch {
+      // Leave the static "Cairo, Egypt" in place.
+    }
+  }
 </script>

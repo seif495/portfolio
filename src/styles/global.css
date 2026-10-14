@@ -488,6 +488,16 @@ a {
   }
 }
 
+/* Phones: the large spacing steps shrink, so the vertical rhythm scales with the screen. */
+@media (max-width: 560px) {
+  :root {
+    --s7: 2.5rem;
+    --s8: 3rem;
+    --s9: 4.5rem;
+    --s10: 6rem;
+  }
+}
+
 @media (max-width: 640px) {
   .instrument__bar {
     flex-direction: column;

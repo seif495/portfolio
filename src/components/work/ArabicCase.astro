@@ -1,5 +1,6 @@
 ---
 import CaseHeader from './CaseHeader.astro';
+import CaseMore from './CaseMore.astro';
 import { arabic } from '../../content/work';
 
 const { lesson } = arabic;
@@ -9,21 +10,24 @@ const { lesson } = arabic;
   <CaseHeader {...arabic} />
 
   <div class="ar-body">
-    <div data-reveal>
-      <p class="label">Pipeline</p>
-      <dl class="kv ar-steps">
-        {
-          arabic.steps.map((s, i) => (
-            <div>
-              <dt>
-                {String(i + 1).padStart(2, '0')} {s.k}
-              </dt>
-              <dd>{s.v}</dd>
-            </div>
-          ))
-        }
-      </dl>
-    </div>
+    <CaseMore id="ar-deep" title="The full pipeline">
+      <div data-reveal>
+        <p class="label">Pipeline</p>
+        <dl class="kv ar-steps">
+          {
+            arabic.steps.map((s, i) => (
+              <div>
+                <dt>
+                  {String(i + 1).padStart(2, '0')} {s.k}
+                </dt>
+                <dd>{s.v}</dd>
+              </div>
+            ))
+          }
+        </dl>
+      </div>
+
+    </CaseMore>
 
     <figure class="instrument lesson" aria-labelledby="lesson-title" data-reveal>
       <div class="instrument__bar">
@@ -179,6 +183,10 @@ const { lesson } = arabic;
   @media (max-width: 960px) {
     .ar-body {
       grid-template-columns: minmax(0, 1fr);
+    }
+
+    .ar-body > :global(.deep) {
+      order: 2;
     }
   }
 

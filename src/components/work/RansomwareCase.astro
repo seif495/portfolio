@@ -1,6 +1,7 @@
 ---
 import CaseHeader from './CaseHeader.astro';
 import CaseBrief from './CaseBrief.astro';
+import CaseMore from './CaseMore.astro';
 import { ransomware } from '../../content/work';
 import { WIDE, renderChart, simulate, type LabState } from '../../lib/baseline-lab';
 
@@ -117,44 +118,46 @@ const noises = [
     </p>
   </section>
 
-  <div class="rd-findings">
-    <div data-reveal>
-      <p class="label">Evaluation, and where it is blind</p>
-      <p class="rd-eval-setup">{ransomware.evaluation.setup}</p>
-      <dl class="verdicts">
-        <div>
-          <dt class="verdict verdict--ok">Strong</dt>
-          <dd>{ransomware.evaluation.strong}</dd>
-        </div>
-        <div>
-          <dt class="verdict">Noise</dt>
-          <dd>{ransomware.evaluation.noise}</dd>
-        </div>
-        <div>
-          <dt class="verdict verdict--bad">Blind spots</dt>
-          <dd>
-            <ul class="limits">
-              {ransomware.limits.map((l) => <li>{l}</li>)}
-            </ul>
-          </dd>
-        </div>
-      </dl>
+  <CaseMore id="rd-deep" title="Evaluation, blind spots and engineering">
+    <div class="rd-findings">
+      <div data-reveal>
+        <p class="label">Evaluation, and where it is blind</p>
+        <p class="rd-eval-setup">{ransomware.evaluation.setup}</p>
+        <dl class="verdicts">
+          <div>
+            <dt class="verdict verdict--ok">Strong</dt>
+            <dd>{ransomware.evaluation.strong}</dd>
+          </div>
+          <div>
+            <dt class="verdict">Noise</dt>
+            <dd>{ransomware.evaluation.noise}</dd>
+          </div>
+          <div>
+            <dt class="verdict verdict--bad">Blind spots</dt>
+            <dd>
+              <ul class="limits">
+                {ransomware.limits.map((l) => <li>{l}</li>)}
+              </ul>
+            </dd>
+          </div>
+        </dl>
+      </div>
+      <div data-reveal>
+        <p class="label">Engineering</p>
+        <dl class="kv rd-kv">
+          {
+            ransomware.engineering.map((e) => (
+              <div>
+                <dt>{e.k}</dt>
+                <dd>{e.v}</dd>
+              </div>
+            ))
+          }
+        </dl>
+        <p class="rd-origins">{ransomware.origins}</p>
+      </div>
     </div>
-    <div data-reveal>
-      <p class="label">Engineering</p>
-      <dl class="kv rd-kv">
-        {
-          ransomware.engineering.map((e) => (
-            <div>
-              <dt>{e.k}</dt>
-              <dd>{e.v}</dd>
-            </div>
-          ))
-        }
-      </dl>
-      <p class="rd-origins">{ransomware.origins}</p>
-    </div>
-  </div>
+  </CaseMore>
 </article>
 
 <style>

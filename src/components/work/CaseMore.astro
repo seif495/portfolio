@@ -1,0 +1,128 @@
+---
+/**
+ * Progressive disclosure for the deeper parts of a case study.
+ * Desktop: the toggle is hidden and the content always shows.
+ * Phones: the content starts collapsed behind one labeled toggle, so the page
+ * keeps each case's brief and main interactive while staying short.
+ * Without JavaScript nothing is hidden (the collapse is keyed on the .js class).
+ */
+interface Props {
+  id: string;
+  title: string;
+}
+
+const { id, title } = Astro.props;
+---
+
+<div class="deep" data-deep>
+  <button type="button" class="deep__toggle" aria-expanded="false" aria-controls={id} data-deep-toggle>
+    <span class="deep__text">
+      <span class="label">Deep dive</span>
+      <span class="deep__title">{title}</span>
+    </span>
+    <span class="deep__state label" aria-hidden="true"><span data-deep-state>Show</span> <span class="deep__chev">↓</span></span>
+  </button>
+  <div class="deep__body" id={id} data-deep-body>
+    <slot />
+  </div>
+</div>
+
+<style>
+  .deep__toggle {
+    display: none;
+  }
+
+  @media (max-width: 760px) {
+    .deep {
+      margin-top: var(--s7);
+    }
+
+    .deep__toggle {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: var(--s4);
+      width: 100%;
+      min-height: 64px;
+      padding: var(--s3) var(--s4);
+      border: 1px solid var(--line-2);
+      background: var(--ink-1);
+      color: var(--bone);
+      text-align: left;
+      transition: border-color var(--t-fast) var(--ease-out);
+    }
+
+    .deep__toggle:hover {
+      border-color: var(--bone-3);
+    }
+
+    .deep__text {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+
+    .deep__title {
+      font-family: var(--serif);
+      font-size: 1.35rem;
+      line-height: 1.15;
+    }
+
+    .deep__state {
+      flex-shrink: 0;
+      color: var(--signal);
+    }
+
+    .deep__chev {
+      display: inline-block;
+      transition: transform var(--t-med) var(--ease-out);
+    }
+
+    .deep.is-open .deep__chev {
+      transform: rotate(180deg);
+    }
+
+    :global(.js) .deep:not(.is-open) .deep__body {
+      display: none;
+    }
+
+    /* The opened content starts right under the toggle. */
+    .deep__body > :global(:first-child) {
+      margin-top: var(--s6) !important;
+    }
+  }
+</style>
+
+<script>
+  const open = (root: HTMLElement, state: boolean) => {
+    root.classList.toggle('is-open', state);
+    const btn = root.querySelector<HTMLButtonElement>('[data-deep-toggle]')!;
+    btn.setAttribute('aria-expanded', String(state));
+    btn.querySelector('[data-deep-state]')!.textContent = state ? 'Hide' : 'Show';
+  };
+
+  const roots = [...document.querySelectorAll<HTMLElement>('[data-deep]')];
+  roots.forEach((root) => {
+    root
+      .querySelector('[data-deep-toggle]')!
+      .addEventListener('click', () => open(root, !root.classList.contains('is-open')));
+  });
+
+  // A link that targets something inside a collapsed section opens it first.
+  const reveal = () => {
+    if (!location.hash) return;
+    let target: Element | null = null;
+    try {
+      target = document.querySelector(location.hash);
+    } catch {
+      return;
+    }
+    const root = target?.closest<HTMLElement>('[data-deep]');
+    if (root && !root.classList.contains('is-open')) {
+      open(root, true);
+      target!.scrollIntoView({ block: 'start' });
+    }
+  };
+  reveal();
+  window.addEventListener('hashchange', reveal);
+</script>
