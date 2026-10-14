@@ -32,7 +32,7 @@ Node 22.12 or newer.
 | `public/` | Résumé PDF, social image, favicons, robots and sitemap; `work/` holds the Pitch Me screenshot |
 
 Content and presentation are separate: to change a fact, edit `src/content/` or `src/data/`; the hero graph and the
-toolkit matrix are derived from `workItems[].stack`, so a tool added there appears in both.
+toolkit are derived from `workItems[].stack`, so a tool added there appears in both.
 
 ## Where the numbers come from
 
