@@ -6,7 +6,7 @@
   "redirects": [
     {
       "source": "/fpl",
-      "destination": "https://20-215-33-13.sslip.io/",
+      "destination": "https://fpl-assistant.polandcentral.cloudapp.azure.com/",
       "permanent": false
     }
   ],
