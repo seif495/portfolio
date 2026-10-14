@@ -1,5 +1,6 @@
 ---
 import CaseHeader from './CaseHeader.astro';
+import CaseBrief from './CaseBrief.astro';
 import { xcv } from '../../content/work';
 
 const { tn, fp, fn, tp } = xcv.confusion;
@@ -42,7 +43,7 @@ const cells = [
 
   <div class="xcv-body">
     <div data-reveal>
-      <p class="case-lead">{xcv.contribution}</p>
+      <CaseBrief items={xcv.brief} variant="stack" />
       <p class="xcv-caveat"><span class="label">Note</span>{xcv.caveat}</p>
     </div>
 
@@ -195,13 +196,15 @@ const cells = [
     align-items: start;
   }
 
+  .xcv-body :global(.brief--stack) {
+    border-top: 1px solid var(--line-2);
+  }
+
   .xcv-caveat {
     display: flex;
     gap: var(--s3);
     align-items: baseline;
-    margin-top: var(--s5);
-    padding-top: var(--s4);
-    border-top: 1px solid var(--line);
+    margin-top: var(--s4);
     color: var(--bone-3);
     font-size: 0.875rem;
   }
@@ -283,6 +286,10 @@ const cells = [
   }
 
   .cm__metrics div {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    gap: var(--s1);
     padding: var(--s3) var(--s4);
     border-right: 1px solid var(--line);
     transition: background var(--t-fast) var(--ease-out);
@@ -305,7 +312,6 @@ const cells = [
   }
 
   .cm__metrics dd {
-    margin-top: var(--s1);
     font-size: 1.6rem;
     line-height: 1.1;
   }

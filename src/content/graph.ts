@@ -121,7 +121,7 @@ export function buildLayouts(): { wide: Layout; narrow: Layout } {
 
   // ---- Narrow: tools → work only.
   const NW = 360;
-  const NH = 660;
+  const NH = 570;
   const nToolX = 98;
   const nWorkX = 252;
   const narrow: GNode[] = [];

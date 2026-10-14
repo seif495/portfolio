@@ -1,5 +1,6 @@
 ---
 import CaseHeader from './CaseHeader.astro';
+import CaseBrief from './CaseBrief.astro';
 import EvalChart from './EvalChart.astro';
 import { fpl } from '../../content/work';
 import traces from '../../data/fpl-traces.json';
@@ -52,14 +53,34 @@ const prepared = traces.traces.map((t) => {
   };
 });
 
-const { modelStory } = fpl;
+const { modelStory, screenshot: shot } = fpl;
 ---
 
 <article class="case" id="fpl" aria-labelledby="fpl-title">
   <CaseHeader {...fpl} live />
 
-  <div class="fpl-intro" data-reveal>
-    <p class="case-lead">{fpl.summary}</p>
+  <CaseBrief items={fpl.brief} />
+
+  <div class="fpl-product" data-reveal>
+    <figure class="shot">
+      <a class="shot__frame" href={fpl.links[0]!.href} target="_blank" rel="noopener">
+        <span class="shot__bar">
+          <span class="shot__host"><span class="dot dot--live" aria-hidden="true"></span><span class="shot__url">{shot.host}</span></span>
+          <span class="shot__open label">Open<span class="shot__open-long"> the app</span> <span aria-hidden="true">↗</span></span>
+        </span>
+        <img
+          src={shot.src1440}
+          srcset={`${shot.src960} 960w, ${shot.src1440} 1440w`}
+          sizes="(min-width: 1320px) 820px, (min-width: 961px) 64vw, 100vw"
+          width={shot.width}
+          height={shot.height}
+          loading="lazy"
+          decoding="async"
+          alt={shot.alt}
+        />
+      </a>
+      <figcaption>{shot.caption}</figcaption>
+    </figure>
     <div class="snapshot">
       <p class="label"><span class="dot dot--live" aria-hidden="true"></span>&ensp;Live graph · {fpl.graphSnapshot.date}</p>
       <dl class="snapshot__grid">
@@ -73,6 +94,17 @@ const { modelStory } = fpl;
         }
       </dl>
       <p class="snapshot__src">From the app’s <code>/health</code> endpoint.</p>
+      <p class="label snapshot__in">In the app</p>
+      <dl class="features">
+        {
+          fpl.appFeatures.map((f) => (
+            <div>
+              <dt>{f.k}</dt>
+              <dd>{f.v}</dd>
+            </div>
+          ))
+        }
+      </dl>
     </div>
   </div>
 
@@ -318,17 +350,87 @@ const { modelStory } = fpl;
 </article>
 
 <style>
-  .fpl-intro {
+  .fpl-product {
     display: grid;
-    grid-template-columns: minmax(0, 7fr) minmax(0, 5fr);
-    gap: clamp(var(--s6), 5vw, var(--s9));
+    grid-template-columns: minmax(0, 8fr) minmax(0, 4fr);
+    gap: clamp(var(--s6), 4vw, var(--s8));
     align-items: start;
     margin-top: var(--s7);
+  }
+
+  .shot {
+    margin: 0;
+  }
+
+  .shot__frame {
+    display: block;
+    border: 1px solid var(--line-2);
+    background: var(--ink-1);
+    transition: border-color var(--t-fast) var(--ease-out);
+  }
+
+  .shot__frame:hover {
+    border-color: var(--bone-3);
+  }
+
+  .shot__bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--s3);
+    min-height: 38px;
+    padding: 0 var(--s4);
+    border-bottom: 1px solid var(--line);
+    font-family: var(--mono);
+    font-size: 0.75rem;
+    color: var(--bone-2);
+  }
+
+  .shot__host {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.7em;
+    min-width: 0;
+  }
+
+  .shot__url {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .shot__open {
+    flex-shrink: 0;
+    transition: color var(--t-fast) var(--ease-out);
+  }
+
+  .shot__frame:hover .shot__open {
+    color: var(--signal);
+  }
+
+  .shot img {
+    display: block;
+    width: 100%;
+    height: auto;
+    aspect-ratio: 1440 / 900;
+    background: var(--ink-2);
+  }
+
+  .shot figcaption {
+    margin-top: var(--s2);
+    color: var(--bone-3);
+    font-size: 0.8125rem;
   }
 
   .snapshot {
     padding: var(--s4) 0 0;
     border-top: 1px solid var(--line-2);
+  }
+
+  .snapshot > .label {
+    display: flex;
+    align-items: center;
   }
 
   .snapshot__grid {
@@ -358,6 +460,28 @@ const { modelStory } = fpl;
     margin-top: var(--s4);
     color: var(--bone-3);
     font-size: 0.8125rem;
+  }
+
+  .snapshot__in {
+    margin-top: var(--s6);
+    padding-bottom: var(--s2);
+    border-bottom: 1px solid var(--line-2);
+  }
+
+  .features div {
+    padding: var(--s2) 0;
+    border-bottom: 1px solid var(--line);
+  }
+
+  .features dt {
+    color: var(--bone);
+    font-size: var(--fs-small);
+  }
+
+  .features dd {
+    color: var(--bone-3);
+    font-size: 0.8125rem;
+    line-height: 1.45;
   }
 
   code {
@@ -745,7 +869,7 @@ const { modelStory } = fpl;
   }
 
   @media (max-width: 960px) {
-    .fpl-intro,
+    .fpl-product,
     .fpl-model,
     .fpl-ops {
       grid-template-columns: minmax(0, 1fr);
@@ -800,6 +924,14 @@ const { modelStory } = fpl;
     .story__steps li {
       grid-template-columns: minmax(0, 1fr);
       gap: var(--s2);
+    }
+
+    .shot__open-long {
+      display: none;
+    }
+
+    .shot__bar {
+      padding-inline: var(--s3);
     }
   }
 </style>

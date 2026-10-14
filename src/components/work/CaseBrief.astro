@@ -1,0 +1,121 @@
+---
+import type { BriefItem } from '../../content/work';
+
+interface Props {
+  items: BriefItem[];
+  /** `row`: side-by-side columns; `stack`: one per line, for narrow columns. */
+  variant?: 'row' | 'stack';
+}
+
+const { items, variant = 'row' } = Astro.props;
+---
+
+<dl class={`brief brief--${variant}`} data-reveal>
+  {
+    items.map((it, i) => (
+      <div class:list={['brief__item', { 'is-result': it.k === 'Result' }]}>
+        <dt class="label">
+          <span class="brief__n" aria-hidden="true">
+            {String(i + 1).padStart(2, '0')}
+          </span>
+          {it.k}
+        </dt>
+        <dd>{it.v}</dd>
+      </div>
+    ))
+  }
+</dl>
+
+<style>
+  .brief {
+    display: grid;
+    margin-top: var(--s7);
+    border-top: 1px solid var(--line-2);
+  }
+
+  .brief dt {
+    display: flex;
+    gap: 0.9em;
+  }
+
+  .brief__n {
+    color: var(--bone-4);
+  }
+
+  .brief dd {
+    margin-top: var(--s2);
+    color: var(--bone-2);
+    line-height: 1.55;
+    max-width: 44ch;
+  }
+
+  .is-result dt {
+    color: var(--signal);
+  }
+
+  .is-result dd {
+    color: var(--bone);
+  }
+
+  /* Row: three columns divided by hairlines. */
+  .brief--row {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .brief--row .brief__item {
+    padding: var(--s4) var(--s5) 0;
+  }
+
+  .brief--row .brief__item:first-child {
+    padding-left: 0;
+  }
+
+  .brief--row .brief__item + .brief__item {
+    border-left: 1px solid var(--line);
+  }
+
+  /* Stack: label column + text, one per line. */
+  .brief--stack {
+    margin-top: 0;
+  }
+
+  .brief--stack .brief__item {
+    display: grid;
+    grid-template-columns: 7.5rem minmax(0, 1fr);
+    gap: var(--s4);
+    padding: var(--s4) 0;
+    border-bottom: 1px solid var(--line);
+  }
+
+  .brief--stack dd {
+    margin-top: 0;
+  }
+
+  .brief--stack dt {
+    padding-top: 0.3em;
+  }
+
+  @media (max-width: 860px) {
+    .brief--row {
+      grid-template-columns: minmax(0, 1fr);
+    }
+
+    .brief--row .brief__item,
+    .brief--row .brief__item:first-child {
+      padding: var(--s4) 0;
+      border-left: 0 !important;
+      border-bottom: 1px solid var(--line);
+    }
+  }
+
+  @media (max-width: 520px) {
+    .brief--stack .brief__item {
+      grid-template-columns: minmax(0, 1fr);
+      gap: var(--s2);
+    }
+
+    .brief--stack dt {
+      padding-top: 0;
+    }
+  }
+</style>

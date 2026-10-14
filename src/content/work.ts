@@ -118,6 +118,12 @@ export interface CaseStudy {
   links: Link[];
 }
 
+/** Three short, labeled statements that open a case study. */
+export interface BriefItem {
+  k: string;
+  v: string;
+}
+
 export const fpl = {
   id: 'fpl',
   index: '01',
@@ -131,8 +137,33 @@ export const fpl = {
     { label: 'Source', href: 'https://github.com/youssef20031/ACL_M3' },
     { label: 'Evaluation report', href: 'https://github.com/youssef20031/ACL_M3/blob/main/docs/ml_evaluation/README.md' },
   ],
-  summary:
-    'Ask a question in plain English. The assistant classifies the intent, extracts players, teams and seasons, runs a parameterized Cypher query over a Neo4j graph of seven seasons, adds semantic matches from sentence embeddings, and asks an LLM to answer only from what came back. Next-gameweek questions are answered by an XGBoost points model that retrains itself every week.',
+  brief: [
+    { k: 'Goal', v: 'Answer Fantasy Premier League questions from seven seasons of real data, not from an LLM’s memory.' },
+    {
+      k: 'Approach',
+      v: 'Rule-based intents and entity extraction choose one of 20+ parameterized Cypher queries over Neo4j; sentence embeddings add semantic matches; the LLM answers only from what came back.',
+    },
+    {
+      k: 'Result',
+      v: 'Live and refreshed daily. On seasons it never saw, the XGBoost model’s top-20 picks score 11% more than the best simple baseline’s.',
+    },
+  ] satisfies BriefItem[],
+  screenshot: {
+    src1440: '/work/pitchme-home-1440.webp',
+    src960: '/work/pitchme-home-960.webp',
+    width: 1440,
+    height: 900,
+    host: 'pitchme.polandcentral.cloudapp.azure.com',
+    alt: 'The Pitch Me home page: the gameweek 7 deadline countdown, an “Ask the assistant” box with example questions, the week’s fixtures and the league table.',
+    caption: 'The live app, branded Pitch Me, as captured on 14 Oct 2026.',
+  },
+  appFeatures: [
+    { k: 'Assistant', v: 'Plain-English questions answered from the graph' },
+    { k: 'Predictions', v: 'Next-gameweek expected points from the XGBoost model' },
+    { k: 'Team of the week', v: 'A 15-player squad chosen by an optimizer within the £100m budget' },
+    { k: 'Players', v: 'Typo-tolerant search and head-to-head comparisons' },
+    { k: 'Trivia', v: 'Generated quiz questions on seven seasons of data' },
+  ],
   graphSnapshot: {
     date: '14 Oct 2026',
     stats: [
@@ -176,8 +207,20 @@ export const ransomware = {
   period: 'Sep – Oct 2026',
   status: 'Prototype · private repository',
   links: [] as Link[],
-  summary:
-    'When ransomware encrypts a file server, the next backup looks wrong: far more changed files, a different size. The service ingests each backup’s metadata through an API, keeps a robust baseline per tenant and backup set (median and MAD of the last 100 normal snapshots), and scores every new snapshot with a modified z-score. It needs no labeled attacks, every alert explains which feature moved, and anomalous snapshots are kept out of the baseline so a detected attack cannot widen what counts as normal.',
+  brief: [
+    {
+      k: 'Goal',
+      v: 'Catch the backup that looks wrong after ransomware encrypts a file server: far more changed files, a different size.',
+    },
+    {
+      k: 'Approach',
+      v: 'Score each backup’s metadata with a modified z-score against a robust baseline per tenant and backup set. No labeled attacks needed, and flagged snapshots never enter the baseline.',
+    },
+    {
+      k: 'Result',
+      v: '100% recall on 10× spikes, 2× increases and 0.1× drops at low and medium noise across 740 synthetic runs, with the blind spots written down.',
+    },
+  ] satisfies BriefItem[],
   engineering: [
     { k: 'API', v: 'Flask app factory with one global auth gate: hashed tenant API keys, separate admin keys, per-IP and per-tenant rate limits.' },
     { k: 'Ingestion', v: 'Idempotent and race-safe: ON CONFLICT plus a unique constraint guarantee exactly one baseline update and one alert per snapshot.' },
@@ -217,8 +260,17 @@ export const xcv = {
     { id: 'boxes', label: 'Bounding boxes', note: 'RT-DETR, only if a fracture is found', mine: false },
     { id: 'llm', label: 'LLM summary', note: 'A short, readable report', mine: false },
   ],
-  contribution:
-    'I cleaned the dataset (exact-duplicate removal by MD5 across 3,196 images), added augmentation, trained a DenseNet-121 binary classifier on Kaggle, tuned its confidence handling, and integrated it into the pipeline, which streams each stage’s result over a WebSocket from FastAPI to the React UI.',
+  brief: [
+    {
+      k: 'Goal',
+      v: 'Turn an uploaded X-ray into a body region, a fracture verdict, a box around the fracture and a readable summary.',
+    },
+    {
+      k: 'My part',
+      v: 'The fracture classifier: MD5 de-duplication across 3,196 images, augmentation, a DenseNet-121 trained on Kaggle with tuned confidence handling, then integration into the FastAPI pipeline that streams each stage to the React UI.',
+    },
+    { k: 'Result', v: '89.0% accuracy and 0.959 ROC AUC on 874 held-out X‑rays.' },
+  ] satisfies BriefItem[],
   confusion: { tn: 470, fp: 55, fn: 41, tp: 308 },
   auc: 0.959,
   caveat: 'A course research prototype. Not a medical device, not clinically validated.',

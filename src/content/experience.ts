@@ -45,7 +45,7 @@ export const roles: Role[] = [
     location: 'Giza, Egypt',
     start: [2025, 7],
     end: [2025, 8],
-    readout: [{ value: 'Hybrid', label: 'time-series regressors + DistilBERT sentiment' }],
+    readout: [{ value: '2020–25', label: 'rPET and commodity price logs prepared for forecasting' }],
     points: [
       'Prepared ML-ready datasets from rPET and commodity price logs (2020–2025), using Seaborn and Matplotlib to surface market correlations and trend anomalies.',
       'Designed a hybrid price-forecasting model that combines time-series regressors with DistilBERT sentiment analysis of socioeconomic indicators.',

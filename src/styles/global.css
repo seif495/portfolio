@@ -38,7 +38,8 @@
   --arabic: 'IBM Plex Sans Arabic', 'Noto Sans Arabic', 'Segoe UI', sans-serif;
 
   /* Fluid type scale */
-  --fs-display: clamp(4.6rem, 2.2rem + 8vw, 9.25rem);
+  /* Width- and height-bound, so the hero's actions stay on screen on short laptops. */
+  --fs-display: clamp(4.6rem, min(2.2rem + 8vw, 15.5vh), 9.25rem);
   --fs-h1: clamp(2.4rem, 1.5rem + 3.4vw, 4.4rem);
   --fs-h2: clamp(2rem, 1.35rem + 2.5vw, 3.4rem);
   --fs-h3: clamp(1.2rem, 1.08rem + 0.45vw, 1.45rem);

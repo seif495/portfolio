@@ -1,5 +1,6 @@
 ---
 import CaseHeader from './CaseHeader.astro';
+import CaseBrief from './CaseBrief.astro';
 import { ransomware } from '../../content/work';
 import { WIDE, renderChart, simulate, type LabState } from '../../lib/baseline-lab';
 
@@ -28,26 +29,25 @@ const noises = [
     </div>
   </CaseHeader>
 
-  <div class="rd-intro" data-reveal>
-    <p class="case-lead">{ransomware.summary}</p>
-    <figure class="formula">
-      <p class="label">How one snapshot is scored</p>
-      <p class="formula__eq mono">
-        z = 0.6745 · (x − median) / max(MAD, 3% · median)
-      </p>
-      <p class="formula__eq mono">alert if max |z| ≥ 3.5 + 20 / n</p>
-      <figcaption>
-        Per feature (changed files, size, change ratio), against the last <em>n</em> ≤ 100 normal snapshots of the same
-        backup set. The <em>20 / n</em> term makes young baselines more cautious; nothing is scored until 10 snapshots
-        exist.
-      </figcaption>
-    </figure>
-  </div>
+  <CaseBrief items={ransomware.brief} />
 
   <section class="instrument lab" aria-labelledby="lab-title" data-lab data-reveal>
     <div class="instrument__bar">
       <span><span class="dot dot--live" aria-hidden="true"></span>&ensp;<strong id="lab-title">Baseline lab</strong></span>
       <span>Simulated in your browser · detector’s scoring rule</span>
+    </div>
+
+    <div class="lab__rule">
+      <div>
+        <p class="label">How one backup is scored</p>
+        <p class="lab__eq mono">z = 0.6745 · (x − median) / max(MAD, 3% · median)</p>
+        <p class="lab__eq mono">alert if max |z| ≥ 3.5 + 20 / n</p>
+      </div>
+      <p class="lab__rule-note">
+        Per feature (changed files, size, change ratio), against the last <em>n</em> ≤ 100 normal snapshots of the same
+        backup set. The <em>20 / n</em> term makes young baselines more cautious; nothing is scored until 10 snapshots
+        exist.
+      </p>
     </div>
 
     <div class="lab__controls">
@@ -158,14 +158,6 @@ const noises = [
 </article>
 
 <style>
-  .rd-intro {
-    display: grid;
-    grid-template-columns: minmax(0, 7fr) minmax(0, 5fr);
-    gap: clamp(var(--s6), 5vw, var(--s9));
-    margin-top: var(--s7);
-    align-items: start;
-  }
-
   .private-note {
     margin-top: var(--s1);
   }
@@ -174,15 +166,19 @@ const noises = [
     color: var(--bone-2) !important;
   }
 
-  .formula {
-    margin: 0;
-    padding-top: var(--s4);
-    border-top: 1px solid var(--line-2);
+  .lab__rule {
+    display: grid;
+    grid-template-columns: minmax(0, 7fr) minmax(0, 5fr);
+    gap: var(--s3) var(--s6);
+    align-items: end;
+    padding: var(--s4);
+    border-bottom: 1px solid var(--line);
+    background: var(--ink-0);
   }
 
-  .formula__eq {
-    margin-top: var(--s3);
-    padding: var(--s3) var(--s4);
+  .lab__eq {
+    margin-top: var(--s2);
+    padding: var(--s2) var(--s3);
     border-left: 2px solid var(--signal);
     background: var(--ink-1);
     font-size: 0.875rem;
@@ -191,15 +187,14 @@ const noises = [
     white-space: nowrap;
   }
 
-  .formula figcaption {
-    margin-top: var(--s4);
+  .lab__rule-note {
     color: var(--bone-3);
     font-size: 0.875rem;
   }
 
   /* ---------- Lab ---------- */
   .lab {
-    margin-top: var(--s7);
+    margin-top: var(--s6);
   }
 
   .lab__controls {
@@ -525,7 +520,7 @@ const noises = [
   }
 
   @media (max-width: 960px) {
-    .rd-intro,
+    .lab__rule,
     .rd-findings,
     .lab__readout {
       grid-template-columns: minmax(0, 1fr);
@@ -549,9 +544,13 @@ const noises = [
       padding-inline: 0;
     }
 
-    .formula__eq {
+    .lab__eq {
       white-space: normal;
       font-size: 0.8rem;
+    }
+
+    .lab__rule {
+      padding-inline: var(--s3);
     }
 
     .lab__ylab {

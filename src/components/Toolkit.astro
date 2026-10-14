@@ -14,8 +14,10 @@ const SHORT: Record<string, string> = {
   dawar: 'Dawar',
 };
 
-const cols = workItems.map((w) => ({ ...w, short: SHORT[w.id] ?? w.label }));
-const usedBy = (t: TechId) => cols.filter((w) => w.stack.includes(t));
+const work = workItems.map((w) => ({ ...w, short: SHORT[w.id] ?? w.label }));
+const projects = work.filter((w) => w.kind !== 'role');
+const roles = work.filter((w) => w.kind === 'role');
+const usedBy = (t: TechId) => work.filter((w) => w.stack.includes(t));
 
 const groups = techCategories
   .map((cat) => ({
@@ -28,94 +30,89 @@ const groups = techCategories
   }))
   .filter((g) => g.rows.length > 0);
 
-const firstRole = cols.findIndex((c) => c.kind === 'role');
+const toolCount = groups.reduce((n, g) => n + g.rows.length, 0);
+const firstTool = groups[0]!.rows[0]!.id;
+
+const clientData = {
+  work: Object.fromEntries(
+    work.map((w) => [w.id, { label: w.label, short: w.short, anchor: w.anchor, role: w.kind === 'role' }]),
+  ),
+};
 ---
 
 <section class="section toolkit" id="toolkit" aria-labelledby="toolkit-title">
   <div class="wrap">
     <SectionHead index="03" label="Toolkit" title="Tools, and where I actually used them." id="toolkit-title">
       <p>
-        No proficiency bars. Each mark connects a tool to a project or role on this page; for team projects, only my
-        own part counts.
+        No proficiency bars. Each tool links to the projects and roles where I used it, and its dots count them; for
+        team projects, only my own part counts.
       </p>
     </SectionHead>
 
-    <div class="matrix-wrap" data-reveal>
-      <table class="matrix" data-matrix>
-        <caption class="visually-hidden">Tools by project and role</caption>
-        <thead>
-          <tr>
-            <th scope="col" class="matrix__corner"><span class="label">Tool</span></th>
+    <div class="tk" data-toolkit data-reveal>
+      <div class="tk__filters">
+        <div class="tk__fgroup">
+          <span class="label" id="tk-projects">Projects</span>
+          <div class="seg" role="group" aria-labelledby="tk-projects">
             {
-              cols.map((c, i) => (
-                <th scope="col" class:list={['matrix__col', { 'is-split': i === firstRole }]} data-col={c.id}>
-                  <a href={c.anchor}>
-                    <span class="matrix__kind label">{c.kind === 'role' ? 'Role' : c.kind === 'research' ? 'Thesis' : 'Project'}</span>
-                    <span class="matrix__name">{c.short}</span>
-                  </a>
-                </th>
+              projects.map((w) => (
+                <button type="button" aria-pressed="false" data-work={w.id}>
+                  {w.short}
+                </button>
               ))
             }
-            <th scope="col" class="matrix__count"><span class="label">Uses</span></th>
-          </tr>
-        </thead>
+          </div>
+        </div>
+        <div class="tk__fgroup">
+          <span class="label" id="tk-roles">Roles</span>
+          <div class="seg" role="group" aria-labelledby="tk-roles">
+            {
+              roles.map((w) => (
+                <button type="button" aria-pressed="false" data-work={w.id}>
+                  {w.short}
+                </button>
+              ))
+            }
+          </div>
+        </div>
+      </div>
+
+      <p class="tk__readout" data-tk-readout aria-live="polite">
+        {toolCount} tools in {groups.length} areas. Pick a project or role to light up what it used, or point at a tool
+        to see where I used it.
+      </p>
+
+      <div class="tk__grid" role="group" aria-label="Tools. Arrow keys move between tools." data-tk-tools>
         {
           groups.map((g) => (
-            <tbody>
-              <tr class="matrix__group">
-                <th scope="colgroup" colspan={cols.length + 2}>
-                  <span class="label">{g.cat}</span>
-                </th>
-              </tr>
-              {g.rows.map((r) => (
-                <tr data-row>
-                  <th scope="row" class="matrix__tool">{r.label}</th>
-                  {cols.map((c, i) => {
-                    const on = r.users.some((u) => u.id === c.id);
-                    return (
-                      <td class:list={['matrix__cell', { 'is-on': on, 'is-split': i === firstRole }]} data-col={c.id}>
-                        {on ? (
-                          <>
-                            <span class="mark" aria-hidden="true" />
-                            <span class="visually-hidden">Used</span>
-                          </>
-                        ) : (
-                          <span class="visually-hidden">Not used</span>
-                        )}
-                      </td>
-                    );
-                  })}
-                  <td class="matrix__n mono">{r.users.length}</td>
-                </tr>
-              ))}
-            </tbody>
+            <section class="tk__group">
+              <h3 class="label">{g.cat}</h3>
+              <ul>
+                {g.rows.map((r) => (
+                  <li>
+                    <button
+                      type="button"
+                      class="tk__tool"
+                      data-tool={r.id}
+                      data-used={r.users.map((u) => u.id).join(' ')}
+                      tabindex={r.id === firstTool ? 0 : -1}
+                    >
+                      <span class="tk__name">{r.label}</span>
+                      <span class="tk__dots" aria-hidden="true">
+                        {r.users.map(() => (
+                          <i />
+                        ))}
+                      </span>
+                      <span class="visually-hidden">, used in {r.users.map((u) => u.short).join(', ')}</span>
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            </section>
           ))
         }
-      </table>
-    </div>
-
-    <div class="toollist" data-reveal>
-      {
-        groups.map((g) => (
-          <section class="toollist__group">
-            <h3 class="label">{g.cat}</h3>
-            <ul>
-              {g.rows.map((r) => (
-                <li>
-                  <span class="toollist__name">{r.label}</span>
-                  <span class="toollist__where">
-                    {r.users.map((u) => (
-                      <a class="tag" href={u.anchor}>
-                        {u.short}
-                      </a>
-                    ))}
-                  </span>
-                </li>
-              ))}
-            </ul>
-          </section>
-        ))
-      }
+      </div>
+      <script type="application/json" data-tk-json set:html={JSON.stringify(clientData)} />
     </div>
 
     <p class="toolkit__also" data-reveal>
@@ -130,127 +127,127 @@ const firstRole = cols.findIndex((c) => c.kind === 'role');
     padding-top: clamp(var(--s9), 10vw, var(--s10));
   }
 
-  .matrix-wrap {
+  .tk {
     margin-top: clamp(var(--s7), 6vw, var(--s8));
   }
 
-  .matrix {
-    width: 100%;
-    border-collapse: collapse;
-    table-layout: fixed;
-  }
-
-  .matrix th,
-  .matrix td {
-    padding: 0;
-    font-weight: 400;
-  }
-
-  .matrix__corner {
-    width: 28%;
-    text-align: left;
-    vertical-align: bottom;
-    padding-bottom: var(--s3) !important;
-  }
-
-  .matrix__count {
-    width: 4.5rem;
-    text-align: right;
-    vertical-align: bottom;
-    padding-bottom: var(--s3) !important;
-  }
-
-  .matrix__col {
-    vertical-align: bottom;
-    padding-bottom: var(--s3) !important;
-    text-align: center;
-  }
-
-  .matrix__col a {
-    display: inline-flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 2px;
-    padding: 4px 2px;
-  }
-
-  .matrix__kind {
-    font-size: 0.6rem;
-    color: var(--bone-4);
-  }
-
-  .matrix__name {
-    font-size: 0.875rem;
-    color: var(--bone);
-    white-space: nowrap;
-  }
-
-  .matrix__col a:hover .matrix__name {
-    color: var(--signal);
-  }
-
-  .matrix__group th {
-    padding: var(--s5) 0 var(--s2) !important;
-    text-align: left;
+  .tk__filters {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--s4) var(--s6);
+    padding-bottom: var(--s4);
     border-bottom: 1px solid var(--line-2);
   }
 
-  .matrix__tool {
-    padding: 0.5em var(--s3) 0.5em 0 !important;
-    text-align: left;
-    font-size: var(--fs-small);
-    color: var(--bone-2);
-    border-bottom: 1px solid var(--line);
+  .tk__fgroup {
+    display: flex;
+    flex-direction: column;
+    gap: var(--s2);
   }
 
-  .matrix__cell {
-    text-align: center;
+  .tk__readout {
+    min-height: 3.2em;
+    padding: var(--s3) 0 var(--s5);
+    color: var(--bone-2);
+    font-size: var(--fs-small);
+  }
+
+  .tk__readout :global(b) {
+    color: var(--bone);
+    font-weight: 500;
+  }
+
+  .tk__readout :global(.tk-sep) {
+    color: var(--bone-4);
+  }
+
+  /* Balanced columns: areas flow top to bottom, so short and long lists pack together. */
+  .tk__grid {
+    columns: 4;
+    column-gap: var(--s6);
+  }
+
+  .tk__group {
+    break-inside: avoid;
+    margin-bottom: var(--s6);
+  }
+
+  .tk__group h3 {
+    padding-bottom: var(--s2);
+    border-bottom: 1px solid var(--line-2);
+  }
+
+  .tk__tool {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--s3);
+    width: 100%;
+    min-height: 34px;
+    padding: 0.3em 0;
+    border: 0;
     border-bottom: 1px solid var(--line);
+    background: transparent;
+    color: var(--bone-2);
+    font-size: var(--fs-small);
+    line-height: 1.35;
+    text-align: left;
+    transition:
+      color var(--t-fast) var(--ease-out),
+      opacity var(--t-fast) var(--ease-out);
+  }
+
+  .tk__tool:focus-visible {
+    outline-offset: 2px;
+  }
+
+  .tk__dots {
+    display: inline-flex;
+    flex-shrink: 0;
+    gap: 3px;
+  }
+
+  .tk__dots i {
+    display: block;
+    width: 5px;
+    height: 5px;
+    border-radius: 50%;
+    background: var(--bone-4);
     transition: background var(--t-fast) var(--ease-out);
   }
 
-  .matrix__cell.is-split,
-  .matrix__col.is-split {
-    border-left: 1px solid var(--line-2);
-  }
-
-  .mark {
-    display: inline-block;
-    width: 9px;
-    height: 9px;
-    border-radius: 50%;
-    background: var(--bone);
-    vertical-align: middle;
-    transition:
-      background var(--t-fast) var(--ease-out),
-      transform var(--t-fast) var(--ease-out);
-  }
-
-  .matrix__n {
-    text-align: right;
-    font-size: 0.8rem;
-    color: var(--bone-3);
-    border-bottom: 1px solid var(--line);
-  }
-
-  /* Crosshair highlight */
-  .matrix tr[data-row]:hover .matrix__tool,
-  .matrix tr[data-row].is-hot .matrix__tool {
+  .tk__tool:hover,
+  .tk__tool.is-current {
     color: var(--bone);
   }
 
-  .matrix tr[data-row]:hover .matrix__cell,
-  .matrix__cell.is-col {
-    background: var(--ink-2);
+  .tk__tool.is-current .tk__name {
+    color: var(--signal);
   }
 
-  .matrix tr[data-row]:hover .mark,
-  .matrix__cell.is-col .mark {
+  .tk__tool.is-current .tk__dots i {
     background: var(--signal);
   }
 
-  .toollist {
-    display: none;
+  /* Filtering by project or role */
+  .tk.is-filtering .tk__tool {
+    opacity: 0.3;
+  }
+
+  .tk.is-filtering .tk__tool.is-on {
+    opacity: 1;
+    color: var(--bone);
+  }
+
+  .tk.is-filtering .tk__tool.is-on .tk__dots i {
+    background: var(--bone-2);
+  }
+
+  /* Projects that use the tool under the pointer */
+  .tk__filters :global(button.is-hot) {
+    color: var(--bone);
+    border-color: var(--signal);
+    box-shadow: inset 0 -2px 0 var(--signal);
   }
 
   .toolkit__also {
@@ -258,65 +255,159 @@ const firstRole = cols.findIndex((c) => c.kind === 'role');
     flex-wrap: wrap;
     gap: var(--s2) var(--s4);
     align-items: baseline;
-    margin-top: var(--s6);
+    margin-top: var(--s7);
     color: var(--bone-2);
     font-size: var(--fs-small);
   }
 
-  @media (max-width: 900px) {
-    .matrix-wrap {
-      display: none;
+  @media (max-width: 1100px) {
+    .tk__grid {
+      columns: 3;
+    }
+  }
+
+  @media (max-width: 760px) {
+    .tk__grid {
+      columns: 2;
+      column-gap: var(--s5);
+    }
+  }
+
+  @media (max-width: 560px) {
+    .tk__filters {
+      gap: var(--s4);
     }
 
-    .toollist {
-      display: grid;
-      gap: var(--s6);
-      margin-top: var(--s7);
+    .tk__fgroup {
+      width: 100%;
     }
 
-    .toollist__group ul {
-      margin-top: var(--s3);
-      border-top: 1px solid var(--line-2);
+    .tk__tool {
+      min-height: 30px;
+      font-size: 0.8125rem;
     }
 
-    .toollist__group li {
-      display: flex;
-      flex-wrap: wrap;
-      justify-content: space-between;
-      gap: var(--s2) var(--s3);
-      padding: var(--s3) 0;
-      border-bottom: 1px solid var(--line);
+    .tk__group {
+      margin-bottom: var(--s5);
     }
+  }
 
-    .toollist__name {
-      color: var(--bone);
-      font-size: var(--fs-small);
-    }
-
-    .toollist__where {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 4px;
-    }
-
-    .toollist__where .tag {
-      min-height: 28px;
+  @media (max-width: 340px) {
+    .tk__grid {
+      columns: 1;
     }
   }
 </style>
 
 <script>
-  document.querySelectorAll<HTMLTableElement>('[data-matrix]').forEach((table) => {
-    const heads = table.querySelectorAll<HTMLElement>('th[data-col]');
-    const setCol = (id: string | null) => {
-      table.querySelectorAll<HTMLElement>('td[data-col]').forEach((td) => td.classList.toggle('is-col', td.dataset.col === id));
+  interface WorkInfo {
+    label: string;
+    short: string;
+    anchor: string;
+    role: boolean;
+  }
+
+  const esc = (s: string) => s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+
+  document.querySelectorAll<HTMLElement>('[data-toolkit]').forEach((root) => {
+    const { work } = JSON.parse(root.querySelector('[data-tk-json]')!.textContent!) as {
+      work: Record<string, WorkInfo>;
     };
-    heads.forEach((th) => {
-      th.addEventListener('pointerenter', () => setCol(th.dataset.col!));
-      th.addEventListener('pointerleave', () => setCol(null));
-      const a = th.querySelector('a');
-      a?.addEventListener('focus', () => setCol(th.dataset.col!));
-      a?.addEventListener('blur', () => setCol(null));
+    const tools = [...root.querySelectorAll<HTMLButtonElement>('[data-tool]')];
+    const filters = [...root.querySelectorAll<HTMLButtonElement>('[data-work]')];
+    const readout = root.querySelector<HTMLElement>('[data-tk-readout]')!;
+    const grid = root.querySelector<HTMLElement>('[data-tk-tools]')!;
+    const defaultText = readout.innerHTML;
+
+    let selected: string | null = null;
+    let pinned: HTMLButtonElement | null = null;
+    let current: HTMLButtonElement | null = null;
+
+    const usedIn = (t: HTMLButtonElement) => (t.dataset.used ?? '').split(' ').filter(Boolean);
+    const toolName = (t: HTMLButtonElement) => t.querySelector('.tk__name')!.textContent!.trim();
+
+    function render() {
+      root.classList.toggle('is-filtering', Boolean(selected));
+      filters.forEach((f) => f.setAttribute('aria-pressed', String(f.dataset.work === selected)));
+      tools.forEach((t) => {
+        t.classList.toggle('is-on', Boolean(selected) && usedIn(t).includes(selected!));
+        t.classList.toggle('is-current', t === current);
+      });
+      const hot = current ? usedIn(current) : [];
+      filters.forEach((f) => f.classList.toggle('is-hot', hot.includes(f.dataset.work!)));
+
+      if (current) {
+        const links = usedIn(current)
+          .map((id) => `<a class="link" href="${work[id]!.anchor}">${esc(work[id]!.label)}</a>`)
+          .join('<span class="tk-sep" aria-hidden="true"> · </span>');
+        readout.innerHTML = `<b>${esc(toolName(current))}</b> <span class="tk-sep" aria-hidden="true">→</span> ${links}`;
+      } else if (selected) {
+        const w = work[selected]!;
+        const n = tools.filter((t) => usedIn(t).includes(selected!)).length;
+        readout.innerHTML = `<b>${esc(w.label)}</b> used ${n} of these tools. <a class="link" href="${w.anchor}">${w.role ? 'Read about the role' : 'Open the case study'} <span class="arrow" aria-hidden="true">↓</span></a>`;
+      } else {
+        readout.innerHTML = defaultText;
+      }
+    }
+
+    filters.forEach((f) =>
+      f.addEventListener('click', () => {
+        selected = selected === f.dataset.work ? null : f.dataset.work!;
+        render();
+      }),
+    );
+
+    // Pointer: hover previews on mouse; a tap or click pins a tool.
+    tools.forEach((t) => {
+      t.addEventListener('pointerenter', (e) => {
+        if (e.pointerType !== 'mouse') return;
+        current = t;
+        render();
+      });
+      t.addEventListener('pointerleave', (e) => {
+        if (e.pointerType !== 'mouse') return;
+        current = pinned;
+        render();
+      });
+      t.addEventListener('click', () => {
+        pinned = pinned === t ? null : t;
+        current = pinned;
+        render();
+      });
+      t.addEventListener('focus', () => {
+        current = t;
+        render();
+      });
+    });
+    grid.addEventListener('focusout', (e) => {
+      if (!grid.contains(e.relatedTarget as Node)) {
+        current = pinned;
+        render();
+      }
+    });
+
+    // Keyboard: the tool cloud is one tab stop; arrows move, Escape clears.
+    grid.addEventListener('keydown', (e) => {
+      const i = tools.indexOf(document.activeElement as HTMLButtonElement);
+      if (i < 0) return;
+      let next = -1;
+      if (e.key === 'ArrowDown' || e.key === 'ArrowRight') next = Math.min(tools.length - 1, i + 1);
+      if (e.key === 'ArrowUp' || e.key === 'ArrowLeft') next = Math.max(0, i - 1);
+      if (e.key === 'Home') next = 0;
+      if (e.key === 'End') next = tools.length - 1;
+      if (e.key === 'Escape') {
+        pinned = null;
+        selected = null;
+        current = null;
+        (document.activeElement as HTMLElement).blur();
+        render();
+        return;
+      }
+      if (next < 0) return;
+      e.preventDefault();
+      tools[i]!.tabIndex = -1;
+      tools[next]!.tabIndex = 0;
+      tools[next]!.focus();
     });
   });
 </script>

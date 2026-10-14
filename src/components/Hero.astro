@@ -19,9 +19,11 @@ const stats = [
   <div class="wrap hero__grid">
     <div class="hero__copy">
       <p class="hero__kicker label">
-        <span>{profile.role}</span><span aria-hidden="true">/</span><span>{profile.location}</span><span
-          aria-hidden="true">/</span
-        ><span>B.Sc. CSE, GUC {profile.gradYear}</span>
+        <span class="hero__kicker-row">
+          <span>{profile.role}</span>
+          <span>{profile.location}</span>
+          <span>B.Sc. CSE, GUC {profile.gradYear}</span>
+        </span>
       </p>
       <h1 class="hero__name serif" id="hero-name">
         <span>Seif</span>
@@ -96,7 +98,7 @@ const stats = [
 
 <style>
   .hero {
-    padding-top: clamp(var(--s6), 5vw, var(--s8));
+    padding-top: clamp(var(--s5), 3.5vw, var(--s7));
   }
 
   .hero__grid {
@@ -106,21 +108,40 @@ const stats = [
     align-items: start;
   }
 
+  /* Separators sit before each item; the row is shifted left and clipped so a
+     separator never dangles at the start of a wrapped line. */
   .hero__kicker {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 0.6em;
+    overflow: hidden;
     color: var(--bone-3);
   }
 
-  .hero__kicker span:first-child {
+  .hero__kicker-row {
+    display: flex;
+    flex-wrap: wrap;
+    row-gap: 0.35em;
+    margin-left: -1.8em;
+  }
+
+  .hero__kicker-row > span {
+    white-space: nowrap;
+  }
+
+  .hero__kicker-row > span::before {
+    content: '/' / '';
+    display: inline-block;
+    width: 1.8em;
+    text-align: center;
+    color: var(--bone-4);
+  }
+
+  .hero__kicker-row > span:first-child {
     color: var(--signal);
   }
 
   .hero__name {
     display: flex;
     flex-direction: column;
-    margin-top: var(--s5);
+    margin-top: var(--s4);
     font-size: var(--fs-display);
     line-height: 0.86;
     letter-spacing: -0.012em;
@@ -132,7 +153,7 @@ const stats = [
 
   .hero__statement {
     max-width: 22ch;
-    margin-top: var(--s6);
+    margin-top: var(--s5);
     font-size: clamp(1.45rem, 1.1rem + 1.2vw, 2.1rem);
     line-height: 1.18;
     letter-spacing: -0.01em;
@@ -147,8 +168,8 @@ const stats = [
   }
 
   .hero__intro {
-    max-width: 52ch;
-    margin-top: var(--s5);
+    max-width: 48ch;
+    margin-top: var(--s4);
     color: var(--bone-2);
   }
 
@@ -156,14 +177,14 @@ const stats = [
     display: flex;
     flex-wrap: wrap;
     gap: var(--s3);
-    margin-top: var(--s6);
+    margin-top: var(--s5);
   }
 
   .hero__links {
     display: flex;
     flex-wrap: wrap;
     gap: var(--s2) var(--s5);
-    margin-top: var(--s5);
+    margin-top: var(--s4);
     font-size: var(--fs-small);
   }
 

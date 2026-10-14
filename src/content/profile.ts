@@ -24,7 +24,7 @@ export const profile = {
     turn: 'then try to prove them wrong.',
   },
   intro:
-    'Computer Science Engineering graduate from the German University in Cairo, working across machine learning, retrieval-augmented LLM applications and data engineering. My projects ship with their evidence: held-out tests, confidence intervals, leakage audits, and a written list of what still fails.',
+    'I work across RAG assistants, anomaly detection and ML pipelines, and ship them with the evidence: held-out tests, confidence intervals, leakage audits and a written list of what still fails.',
 } as const;
 
 export const nav = [

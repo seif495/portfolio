@@ -11,18 +11,19 @@ interface Props {
   status: string;
   links: Link[];
   live?: boolean;
+  total?: string;
 }
 
-const { id, index, title, tagline, role, period, status, links, live = false } = Astro.props;
+const { id, index, title, tagline, role, period, status, links, live = false, total = '04' } = Astro.props;
 ---
 
 <header class="case-head" data-reveal>
   <div class="case-head__title">
-    <p class="case-head__index serif" aria-hidden="true">{index}</p>
-    <div>
-      <h3 class="serif" id={`${id}-title`}>{title}</h3>
-      <p class="case-head__tagline">{tagline}</p>
-    </div>
+    <p class="case-head__kicker label">
+      <span class="signal">Case {index}</span><span aria-hidden="true"> / {total}</span>
+    </p>
+    <h3 class="serif" id={`${id}-title`}>{title}</h3>
+    <p class="case-head__tagline">{tagline}</p>
   </div>
   <dl class="case-head__meta">
     <div>
@@ -70,17 +71,8 @@ const { id, index, title, tagline, role, period, status, links, live = false } =
     align-items: start;
   }
 
-  .case-head__title {
-    display: grid;
-    grid-template-columns: auto minmax(0, 1fr);
-    gap: clamp(var(--s4), 2.5vw, var(--s6));
-  }
-
-  .case-head__index {
-    font-size: clamp(3.2rem, 2rem + 4vw, 6rem);
-    line-height: 0.82;
-    color: transparent;
-    -webkit-text-stroke: 1px var(--line-3);
+  .case-head__kicker {
+    margin-bottom: var(--s3);
   }
 
   h3 {
@@ -148,14 +140,4 @@ const { id, index, title, tagline, role, period, status, links, live = false } =
     }
   }
 
-  @media (max-width: 560px) {
-    .case-head__title {
-      grid-template-columns: minmax(0, 1fr);
-      gap: var(--s3);
-    }
-
-    .case-head__index {
-      font-size: 3rem;
-    }
-  }
 </style>

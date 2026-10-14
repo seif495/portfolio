@@ -44,15 +44,18 @@ import { caseIndex, moreWork } from '../content/work';
     </div>
 
     <div class="more" aria-labelledby="more-title">
-      <h3 class="label" id="more-title">Also built</h3>
+      <h3 class="label more__rail" id="more-title">Also built</h3>
       <ul class="more__list">
         {
           moreWork.filter((m) => m.id !== 'thesis').map((m) => (
             <li class="more__item" id={m.id} data-reveal>
-              <p class="more__kind label">{m.kind}</p>
-              <h4 class="more__title serif">{m.title}</h4>
-              <p class="more__text">{m.text}</p>
-              <ul class="more__links">
+              <div>
+                <p class="more__kind label">{m.kind}</p>
+                <h4 class="more__title serif">{m.title}</h4>
+              </div>
+              <div>
+                <p class="more__text">{m.text}</p>
+                <ul class="more__links">
                 {m.links.map((l) => (
                   <li>
                     <a class="link" href={l.href} target="_blank" rel="noopener">
@@ -60,7 +63,8 @@ import { caseIndex, moreWork } from '../content/work';
                     </a>
                   </li>
                 ))}
-              </ul>
+                </ul>
+              </div>
             </li>
           ))
         }
@@ -208,24 +212,30 @@ import { caseIndex, moreWork } from '../content/work';
     border-top: 1px solid var(--line);
   }
 
-  .cases :global(.case-lead) {
-    font-size: var(--fs-lead);
-    line-height: 1.55;
-    color: var(--bone-2);
-    max-width: 62ch;
-  }
 
+  /* Same 3/9 rail as the section headings, so a single entry reads as a row, not a leftover. */
   .more {
+    display: grid;
+    grid-template-columns: minmax(0, 3fr) minmax(0, 9fr);
+    gap: var(--s5);
     margin-top: clamp(var(--s9), 10vw, 9rem);
     padding-top: var(--s5);
     border-top: 1px solid var(--line);
   }
 
+  .more__rail {
+    padding-top: 0.3em;
+  }
+
   .more__list {
     display: grid;
-    grid-template-columns: minmax(0, 1fr);
-    gap: var(--s6) clamp(var(--s6), 5vw, var(--s9));
-    margin-top: var(--s5);
+    gap: var(--s6);
+  }
+
+  .more__item {
+    display: grid;
+    grid-template-columns: minmax(0, 4fr) minmax(0, 5fr);
+    gap: var(--s3) var(--s6);
   }
 
   .more__title {
@@ -235,7 +245,6 @@ import { caseIndex, moreWork } from '../content/work';
   }
 
   .more__text {
-    margin-top: var(--s3);
     color: var(--bone-2);
     font-size: var(--fs-small);
     max-width: 58ch;
@@ -256,7 +265,8 @@ import { caseIndex, moreWork } from '../content/work';
   }
 
   @media (max-width: 860px) {
-    .more__list {
+    .more,
+    .more__item {
       grid-template-columns: minmax(0, 1fr);
     }
   }

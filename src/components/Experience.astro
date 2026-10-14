@@ -8,40 +8,61 @@ const AXIS_END: YM = [2026, 6];
 const span = months(AXIS_START, AXIS_END);
 const pos = (ym: YM) => ((months(AXIS_START, ym) - 1) / span) * 100;
 const width = (a: YM, b: YM) => (months(a, b) / span) * 100;
-const years = [2024, 2025, 2026];
 const key = (ym: YM) => ym[0] * 12 + ym[1];
 const chrono = [...roles].sort((a, b) => key(a.start) - key(b.start));
+
+// Quarter ticks along the axis; January ticks carry the year.
+const ticks: { x: number; year?: number }[] = [];
+for (let y = AXIS_START[0]; y <= AXIS_END[0]; y++) {
+  for (const m of [1, 4, 7, 10]) {
+    if (key([y, m]) < key(AXIS_START) || key([y, m]) > key(AXIS_END)) continue;
+    ticks.push({ x: pos([y, m]), year: m === 1 ? y : undefined });
+  }
+}
+const eduEnd = pos(education.end) + width(education.end, education.end);
 ---
 
 <section class="section experience" id="experience" aria-labelledby="exp-title">
   <div class="wrap">
     <SectionHead index="02" label="Experience" title="Three internships: AI engineering, data science, analytics." id="exp-title" />
 
-    <figure class="strip" aria-label="Timeline of internships, 2024 to 2026" data-reveal>
-      <div class="strip__axis" aria-hidden="true">
-        {years.map((y) => <span style={`left:${pos([y, 1])}%`}>{y}</span>)}
-      </div>
-      <div class="strip__rows">
+    <figure class="strip" aria-labelledby="strip-cap" data-reveal>
+      <figcaption class="strip__cap label" id="strip-cap">Internships, January 2024 to June 2026</figcaption>
+      <div class="strip__plot">
+        <div class="strip__grid" aria-hidden="true">
+          {
+            ticks.map((t) => (
+              <span class:list={['strip__tick', { 'is-year': t.year }]} style={`left:${t.x}%`}>
+                {t.year && <span class="strip__year">{t.year}</span>}
+              </span>
+            ))
+          }
+        </div>
         <div class="strip__row strip__row--edu">
-          <span class="strip__bar" style={`left:0;width:${pos(education.end) + width(education.end, education.end)}%`}>
-            <span class="strip__label">B.Sc. at GUC, since Oct 2021 <span aria-hidden="true">←</span></span>
+          <span class="strip__lab is-end" style={`right:${100 - eduEnd}%`}>
+            <span aria-hidden="true">← </span>B.Sc. CSE, GUC <span class="strip__dates mono">since Oct 2021</span>
           </span>
+          <span class="strip__bar" style={`left:0;width:${eduEnd}%`}></span>
         </div>
         {
-          chrono.map((r) => (
-            <div class="strip__row">
-              <a
-                class="strip__bar strip__bar--role"
-                href={`#exp-${r.id}`}
-                style={`left:${pos(r.start)}%;width:${width(r.start, r.end)}%`}
-                aria-label={`${r.company}, ${r.title}, ${fmtRange(r.start, r.end)}`}
-              >
-                <span class={`strip__label ${pos(r.start) + width(r.start, r.end) > 70 ? 'is-left' : ''}`}>
-                  {r.company} <span class="muted">· {r.title}</span>
+          chrono.map((r) => {
+            const start = pos(r.start);
+            const end = start + width(r.start, r.end);
+            const alignEnd = start > 50;
+            return (
+              <a class="strip__row strip__row--role" href={`#exp-${r.id}`}>
+                <span
+                  class:list={['strip__lab', { 'is-end': alignEnd }]}
+                  style={alignEnd ? `right:${100 - end}%` : `left:${start}%`}
+                >
+                  <span class="strip__co">{r.company}</span>
+                  <span class="strip__title"> · {r.title}</span>
+                  <span class="strip__dates mono">{fmtRange(r.start, r.end)}</span>
                 </span>
+                <span class="strip__bar" style={`left:${start}%;width:${end - start}%`} />
               </a>
-            </div>
-          ))
+            );
+          })
         }
       </div>
     </figure>
@@ -100,80 +121,108 @@ const chrono = [...roles].sort((a, b) => key(a.start) - key(b.start));
   /* ---------- Strip ---------- */
   .strip {
     margin: clamp(var(--s7), 6vw, var(--s8)) 0 0;
-    padding: var(--s6) 0 var(--s2);
-    border-bottom: 1px solid var(--line);
-    position: relative;
   }
 
-  .strip__axis {
+  .strip__cap {
+    margin-bottom: var(--s4);
+  }
+
+  .strip__plot {
+    position: relative;
+    padding-bottom: 30px;
+    border-bottom: 1px solid var(--line-2);
+  }
+
+  .strip__grid {
     position: absolute;
     inset: 0;
     pointer-events: none;
   }
 
-  .strip__axis span {
+  .strip__tick {
     position: absolute;
     top: 0;
     bottom: 0;
-    padding-left: 8px;
-    border-left: 1px dashed var(--line-2);
-    font-family: var(--mono);
-    font-size: var(--fs-micro);
-    color: var(--bone-4);
+    border-left: 1px dotted var(--line);
   }
 
-  .strip__rows {
-    position: relative;
-    display: grid;
-    gap: 10px;
+  .strip__tick.is-year {
+    border-left: 1px solid var(--line-2);
+  }
+
+  .strip__year {
+    position: absolute;
+    bottom: 6px;
+    left: 8px;
+    font-family: var(--mono);
+    font-size: var(--fs-micro);
+    color: var(--bone-3);
   }
 
   .strip__row {
     position: relative;
-    height: 30px;
+    display: block;
+    height: 56px;
   }
 
-  .strip__bar {
+  .strip__lab {
     position: absolute;
-    top: 0;
-    bottom: 0;
-    display: flex;
-    align-items: center;
-  }
-
-  .strip__row--edu .strip__bar {
-    background: linear-gradient(90deg, transparent, rgb(205 185 141 / 0.1) 18%);
-    border-right: 2px solid var(--sand);
-  }
-
-  .strip__row--edu .strip__label {
-    position: static;
-    margin-left: auto;
-    padding-right: var(--s3);
-    color: var(--sand);
-  }
-
-  .strip__bar--role {
-    min-width: 6px;
-    background: var(--bone);
-    transition: background var(--t-fast) var(--ease-out);
-  }
-
-  .strip__bar--role:hover {
-    background: var(--signal);
-  }
-
-  .strip__label {
-    position: absolute;
-    left: calc(100% + 10px);
+    top: 8px;
     white-space: nowrap;
     font-size: 0.875rem;
     color: var(--bone);
   }
 
-  .strip__label.is-left {
-    left: auto;
-    right: calc(100% + 10px);
+  .strip__lab.is-end {
+    text-align: right;
+    padding-right: 2px;
+  }
+
+  .strip__title {
+    color: var(--bone-3);
+  }
+
+  .strip__dates {
+    margin-left: 0.8em;
+    font-size: 0.75rem;
+    color: var(--bone-3);
+  }
+
+  .strip__bar {
+    position: absolute;
+    top: 36px;
+    height: 6px;
+    min-width: 6px;
+    background: var(--bone-2);
+    transition: background var(--t-fast) var(--ease-out);
+  }
+
+  .strip__row--role:hover .strip__bar,
+  .strip__row--role:focus-visible .strip__bar {
+    background: var(--signal);
+  }
+
+  .strip__row--role:hover .strip__co,
+  .strip__row--role:focus-visible .strip__co {
+    color: var(--signal);
+  }
+
+  .strip__row--role:focus-visible {
+    outline-offset: -2px;
+  }
+
+  .strip__row--edu {
+    height: 48px;
+  }
+
+  .strip__row--edu .strip__lab {
+    color: var(--sand);
+  }
+
+  .strip__row--edu .strip__bar {
+    top: 32px;
+    height: 2px;
+    background: linear-gradient(90deg, transparent, var(--sand) 22%);
   }
 
   /* ---------- Roles ---------- */
@@ -308,12 +357,12 @@ const chrono = [...roles].sort((a, b) => key(a.start) - key(b.start));
   }
 
   @media (max-width: 640px) {
-    .strip__label .muted {
+    .strip__title {
       display: none;
     }
 
-    .strip__row--edu .strip__label {
-      font-size: 0.75rem;
+    .strip__lab {
+      font-size: 0.8125rem;
     }
   }
 </style>
