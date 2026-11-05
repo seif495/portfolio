@@ -64,7 +64,7 @@ export const workItems: WorkItem[] = [
     kind: 'project',
     anchor: '#arabic',
     disciplines: ['llm', 'data'],
-    stack: ['python', 'tensorflow', 'langchain', 'chromadb', 'embeddings', 'llmapi', 'streamlit'],
+    stack: ['python', 'tensorflow', 'numpy', 'fastapi', 'langchain', 'chromadb', 'embeddings', 'llmapi', 'streamlit'],
   },
   {
     id: 'thesis',
@@ -281,19 +281,71 @@ export const arabic = {
   index: '04',
   title: 'Code-switched Arabic QA',
   tagline: 'Retrieval-augmented question answering over Egyptian-dialect transcripts that move between dialect, Modern Standard Arabic and English mid-sentence.',
-  role: 'Team project · repo owner; ingestion, profiling, RAG system and app',
-  period: 'Mar – May 2026',
-  status: 'Course project',
+  role: 'Team project · repo owner; ingestion, profiling, RAG system and the live site',
+  period: 'Mar – May 2026; live site Oct 2026',
+  status: 'Live',
   links: [
+    { label: 'Live app', href: 'https://arabizy.vercel.app/' },
     { label: 'Source', href: 'https://github.com/seif495/arabic-nlp-qa-rag' },
-    { label: 'Streamlit app', href: 'https://arabizi.streamlit.app/' },
+    { label: 'Model selection', href: 'https://github.com/seif495/arabic-nlp-qa-rag/blob/main/docs/reports/ms3_web_model_selection.md' },
   ],
+  brief: [
+    {
+      k: 'Goal',
+      v: 'Answer questions about 13 episodes of ElDa7ee7, a popular-science show told in Egyptian dialect, using only what the transcripts say.',
+    },
+    {
+      k: 'Approach',
+      v: 'Rewrite the question into Arabic, retrieve transcript chunks with BM25, optionally re-rank them with the team’s own from-scratch model, and let a hosted LLM answer from those chunks or refuse.',
+    },
+    {
+      k: 'Result',
+      v: 'Live on Vercel as one Python function. The team’s TensorFlow models run as NumPy ports whose float16 weights reproduce the TensorFlow dev scores exactly.',
+    },
+  ] satisfies BriefItem[],
+  screenshot: {
+    src1440: '/work/arabizy-chat-1440.webp',
+    src960: '/work/arabizy-chat-960.webp',
+    width: 1440,
+    height: 900,
+    host: 'arabizy.vercel.app',
+    alt: 'The chatbot answering “How does the octopus see colors?” in Arabic. The open retrieval log shows the question rewritten into Egyptian Arabic, the Groq model used, per-step timings and the retrieved octopus-episode chunks with their BM25 and MS2 scores.',
+    caption: 'The live site on 5 Nov 2026: an English question answered in Arabic from the octopus episode, with the retrieval log open.',
+  },
+  appFeatures: [
+    { k: 'Generation modes', v: 'LLM only, MS2 model only, or both side by side' },
+    { k: 'Re-ranking', v: '30 BM25 candidates re-ordered by a 50/50 blend with the MS2 model’s similarity score' },
+    { k: 'Memory', v: 'Four context-window strategies; the history lives in the browser' },
+    { k: 'Prompts', v: 'Four strategies: Arabic or English, guided or minimal' },
+    { k: 'Logs', v: 'Rewritten query, chunks, scores and timings for every answer' },
+  ],
+  bakeoff: {
+    rows: [
+      { model: 'Model A', arch: 'Tri-encoder RNN + FiLM decoder', params: '2.42M', em: '0.068', f1: '0.100', site: 'Default' },
+      { model: 'Model B', arch: 'RoPE Transformer', params: '2.28M', em: '0.058', f1: '0.097', site: 'Selectable' },
+      { model: 'Vanilla', arch: 'Sinusoidal Transformer', params: '4.10M', em: '0.046', f1: '0.087', site: 'Selectable' },
+      { model: 'RNN variant', arch: 'Config-driven RNN', params: '3.72M', em: '0.019', f1: '0.068', site: 'Not shipped' },
+    ],
+    finding:
+      'All four were trained with one recipe and ranked on decoded answers, not loss: the vanilla Transformer had the lowest dev loss and still came third. Trained from scratch on 3.5k pairs, none is good enough to answer alone, so the site labels their answers experimental and shows them next to the LLM’s.',
+  },
   steps: [
-    { k: 'Corpus', v: '13 ElDa7ee7 transcripts and 3,900 extractive QA pairs' },
+    { k: 'Corpus', v: '13 ElDa7ee7 Season 8 transcripts and 3,900 extractive QA pairs' },
     { k: 'Normalize', v: 'No stemming or lemmatization; punctuation and English tokens kept, so the dialect survives' },
-    { k: 'Index', v: '1,000-character chunks, 200 overlap, multilingual MiniLM embeddings in ChromaDB' },
-    { k: 'Generate', v: 'Llama 3.3 70B on Groq, automatic fallback to Gemini, a strict OUT_OF_DOMAIN guardrail' },
-    { k: 'Converse', v: 'Sliding-window, truncated and summarized memory; semantic cache; team-built RNN and Transformer models (TensorFlow, from scratch) for re-ranking' },
+    { k: 'Chunk', v: '594 chunks of 1,000 characters with 200 overlap' },
+    {
+      k: 'Retrieve',
+      v: 'The question is rewritten into Arabic, then BM25 ranks light-stemmed tokens. The course build used multilingual MiniLM embeddings in ChromaDB; PyTorch does not fit in a Vercel function',
+    },
+    { k: 'Re-rank', v: 'Optional: the MS2 model’s question and chunk encodings re-order the top 30 by cosine similarity, blended with BM25' },
+    {
+      k: 'Generate',
+      v: 'GPT-OSS 120B on Groq, switching automatically when Groq retires a model; Gemini 2.5 Flash as fallback; a strict OUT_OF_DOMAIN guardrail',
+    },
+    {
+      k: 'Serve',
+      v: 'FastAPI on Vercel. The team’s TensorFlow models run as NumPy ports, parity-tested against TensorFlow layer by layer',
+    },
   ],
   lesson: {
     query: 'من الذي بنى تاج محل ولماذا؟',
@@ -301,8 +353,12 @@ export const arabic = {
     passage: 'هيبنيلها اعظم صرح',
     passageGloss: '“He’ll build her the greatest edifice” (Egyptian dialect, inside a joke about Romeo and Juliet)',
     finding:
-      'The small multilingual encoder did not connect formal بنى (“built”) with colloquial هيبنيلها. Chunks that merely repeated “Taj Mahal” outranked the one holding the answer, it fell out of the top 4, and the guardrail correctly refused to guess.',
-    fix: 'Next step: hybrid BM25 + dense retrieval, or an Arabic-specific encoder such as MARBERT.',
+      'In the course build, the small multilingual encoder did not connect formal بنى (“built”) with colloquial هيبنيلها. Chunks that merely repeated “Taj Mahal” outranked the one holding the answer, it fell out of the top 4, and the guardrail correctly refused to guess.',
+    rewrite: 'مين اللي بنى تاج محل وإيه السبب؟',
+    found: 'Shah Jahan built it “for her memory, not his glory”',
+    after:
+      'The live site gets there by a different route: it never matched the joke, it found a plainer chunk. Lexical retrieval still misses paraphrases that share no words, so an Arabic-specific encoder such as MARBERT is the next step.',
+    checked: '5 Nov 2026',
   },
 } satisfies CaseStudy & Record<string, unknown>;
 
@@ -311,7 +367,7 @@ export const caseIndex = [
   { id: 'fpl', index: '01', title: 'FPL FantasyTrivia', area: 'Graph-RAG · ML · MLOps', result: '+11% top-20 pick quality over the best baseline', status: 'Live' },
   { id: 'ransomware', index: '02', title: 'Ransomware detection', area: 'Anomaly detection · backend', result: '740 synthetic evaluation runs; blind spots documented', status: 'Prototype' },
   { id: 'xcv', index: '03', title: 'X-CV', area: 'Computer vision', result: '0.959 ROC AUC on 874 held-out X‑rays', status: 'Team of 7' },
-  { id: 'arabic', index: '04', title: 'Code-switched Arabic QA', area: 'NLP · RAG', result: '3,900 QA pairs over dialect-heavy transcripts', status: 'Team project' },
+  { id: 'arabic', index: '04', title: 'Code-switched Arabic QA', area: 'NLP · RAG', result: 'Live chatbot over 13 dialect-heavy transcripts', status: 'Live' },
 ];
 
 export const moreWork = [

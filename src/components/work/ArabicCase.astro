@@ -1,16 +1,38 @@
 ---
 import CaseHeader from './CaseHeader.astro';
+import CaseBrief from './CaseBrief.astro';
 import CaseMore from './CaseMore.astro';
+import Shot from './Shot.astro';
 import { arabic } from '../../content/work';
 
-const { lesson } = arabic;
+const { lesson, bakeoff } = arabic;
+const maxF1 = Math.max(...bakeoff.rows.map((r) => Number(r.f1)));
 ---
 
 <article class="case" id="arabic" aria-labelledby="arabic-title">
-  <CaseHeader {...arabic} />
+  <CaseHeader {...arabic} live />
+
+  <CaseBrief items={arabic.brief} />
+
+  <div class="ar-product" data-reveal>
+    <Shot shot={arabic.screenshot} href={arabic.links[0]!.href} />
+    <div class="ar-side">
+      <p class="label ar-side__title">On the live site</p>
+      <dl class="ar-features">
+        {
+          arabic.appFeatures.map((f) => (
+            <div>
+              <dt>{f.k}</dt>
+              <dd>{f.v}</dd>
+            </div>
+          ))
+        }
+      </dl>
+    </div>
+  </div>
 
   <div class="ar-body">
-    <CaseMore id="ar-deep" title="The full pipeline">
+    <CaseMore id="ar-deep" title="Pipeline and the model bake-off">
       <div data-reveal>
         <p class="label">Pipeline</p>
         <dl class="kv ar-steps">
@@ -27,12 +49,50 @@ const { lesson } = arabic;
         </dl>
       </div>
 
+      <div class="bakeoff" data-reveal>
+        <p class="label">MS2 model bake-off · dev split, 414 questions</p>
+        <table>
+          <thead>
+            <tr>
+              <th scope="col">Model</th>
+              <th scope="col" class="num bakeoff__params">Params</th>
+              <th scope="col" class="num">EM</th>
+              <th scope="col">Token-F1</th>
+              <th scope="col">On the site</th>
+            </tr>
+          </thead>
+          <tbody>
+            {
+              bakeoff.rows.map((r, i) => (
+                <tr class={i === 0 ? 'is-best' : undefined}>
+                  <th scope="row">
+                    {r.model}
+                    <span class="bakeoff__arch">{r.arch}</span>
+                  </th>
+                  <td class="num bakeoff__params">{r.params}</td>
+                  <td class="num">{r.em}</td>
+                  <td>
+                    <span class="bakeoff__f1">
+                      <span class="bakeoff__track" aria-hidden="true">
+                        <span class="bakeoff__bar" style={`width:${(Number(r.f1) / maxF1) * 100}%`} />
+                      </span>
+                      <span class="num">{r.f1}</span>
+                    </span>
+                  </td>
+                  <td class="bakeoff__site">{r.site}</td>
+                </tr>
+              ))
+            }
+          </tbody>
+        </table>
+        <p class="bakeoff__note">{bakeoff.finding}</p>
+      </div>
     </CaseMore>
 
     <figure class="instrument lesson" aria-labelledby="lesson-title" data-reveal>
       <div class="instrument__bar">
         <span><strong id="lesson-title">A retrieval failure, explained</strong></span>
-        <span>From the Milestone 3 report</span>
+        <span>Milestone 3 report, re-run {lesson.checked}</span>
       </div>
       <div class="lesson__body">
         <div class="lesson__item">
@@ -50,21 +110,67 @@ const { lesson } = arabic;
           <p class="lesson__ar" lang="ar" dir="rtl">…{lesson.passage}…</p>
           <p class="lesson__gloss">{lesson.passageGloss}</p>
         </div>
-        <ol class="lesson__rank" aria-label="What reached the model">
+
+        <p class="label lesson__phase">Course build · embeddings, top 4</p>
+        <ol class="lesson__rank" aria-label="What reached the model in the course build">
           <li><span class="mono">top-4</span>Chunks that repeat “Taj Mahal” elsewhere in the corpus</li>
           <li class="is-out"><span class="mono">not retrieved</span><s>The chunk containing the answer</s></li>
           <li class="is-guard"><span class="mono">response</span><span><code>OUT_OF_DOMAIN</code>, by design, instead of a guess</span></li>
         </ol>
+
+        <p class="label lesson__phase">Live site · BM25, top 6 · {lesson.checked}</p>
+        <ol class="lesson__rank" aria-label="What reached the model on the live site">
+          <li>
+            <span class="mono">rewrite</span>
+            <span class="lesson__inline-ar" lang="ar" dir="rtl">{lesson.rewrite}</span>
+          </li>
+          <li class="is-in"><span class="mono">3rd by BM25</span><span>A different chunk: {lesson.found}</span></li>
+          <li class="is-guard"><span class="mono">response</span><span>Answered: Shah Jahan, as a tomb for Mumtaz Mahal</span></li>
+        </ol>
       </div>
       <figcaption class="lesson__caption">
         <p>{lesson.finding}</p>
-        <p class="lesson__fix">{lesson.fix}</p>
+        <p class="lesson__fix">{lesson.after}</p>
       </figcaption>
     </figure>
   </div>
 </article>
 
 <style>
+  .ar-product {
+    display: grid;
+    grid-template-columns: minmax(0, 8fr) minmax(0, 4fr);
+    gap: clamp(var(--s6), 4vw, var(--s8));
+    align-items: start;
+    margin-top: var(--s7);
+  }
+
+  .ar-side {
+    padding-top: var(--s4);
+    border-top: 1px solid var(--line-2);
+  }
+
+  .ar-side__title {
+    padding-bottom: var(--s2);
+    border-bottom: 1px solid var(--line-2);
+  }
+
+  .ar-features div {
+    padding: var(--s2) 0;
+    border-bottom: 1px solid var(--line);
+  }
+
+  .ar-features dt {
+    color: var(--bone);
+    font-size: var(--fs-small);
+  }
+
+  .ar-features dd {
+    color: var(--bone-3);
+    font-size: 0.8125rem;
+    line-height: 1.45;
+  }
+
   .ar-body {
     display: grid;
     grid-template-columns: minmax(0, 5fr) minmax(0, 7fr);
@@ -81,6 +187,98 @@ const { lesson } = arabic;
     white-space: nowrap;
   }
 
+  /* ---------- Bake-off ---------- */
+  .bakeoff {
+    margin-top: var(--s7);
+  }
+
+  .bakeoff table {
+    width: 100%;
+    margin-top: var(--s4);
+    border-collapse: collapse;
+    border-top: 1px solid var(--line);
+    font-size: 0.8125rem;
+  }
+
+  .bakeoff th,
+  .bakeoff td {
+    padding: var(--s2) var(--s2) var(--s2) 0;
+    border-bottom: 1px solid var(--line);
+    text-align: left;
+    vertical-align: top;
+    font-weight: 400;
+  }
+
+  .bakeoff thead th {
+    font-family: var(--mono);
+    font-size: var(--fs-micro);
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--bone-3);
+    white-space: nowrap;
+  }
+
+  .bakeoff tbody th {
+    color: var(--bone);
+  }
+
+  .bakeoff__arch {
+    display: block;
+    color: var(--bone-3);
+    font-size: 0.75rem;
+  }
+
+  .bakeoff .num {
+    font-family: var(--mono);
+    font-variant-numeric: tabular-nums;
+    color: var(--bone-2);
+  }
+
+  .bakeoff th.num,
+  .bakeoff td.num {
+    text-align: right;
+    padding-right: var(--s3);
+  }
+
+  .bakeoff__f1 {
+    display: flex;
+    align-items: center;
+    gap: var(--s2);
+  }
+
+  .bakeoff__track {
+    flex: 1;
+    min-width: 2.5rem;
+    height: 6px;
+    background: var(--line);
+  }
+
+  .bakeoff__bar {
+    display: block;
+    height: 100%;
+    background: var(--bone-3);
+  }
+
+  .is-best .bakeoff__bar {
+    background: var(--signal);
+  }
+
+  .bakeoff__site {
+    color: var(--bone-3);
+    white-space: nowrap;
+  }
+
+  .is-best .bakeoff__site {
+    color: var(--bone);
+  }
+
+  .bakeoff__note {
+    margin-top: var(--s3);
+    color: var(--bone-3);
+    font-size: 0.8125rem;
+  }
+
+  /* ---------- Lesson ---------- */
   .lesson {
     margin: 0;
   }
@@ -128,8 +326,12 @@ const { lesson } = arabic;
     color: var(--signal);
   }
 
-  .lesson__rank {
+  .lesson__phase {
     margin-top: var(--s5);
+    padding-bottom: var(--s2);
+  }
+
+  .lesson__rank {
     border-top: 1px solid var(--line);
   }
 
@@ -163,9 +365,20 @@ const { lesson } = arabic;
     color: var(--signal);
   }
 
+  .lesson__rank .is-in .mono {
+    color: var(--steel);
+  }
+
   .lesson__rank .is-guard code {
     font-family: var(--mono);
     color: var(--steel);
+  }
+
+  .lesson__inline-ar {
+    font-family: var(--arabic);
+    font-size: 1.05rem;
+    color: var(--bone);
+    text-align: right;
   }
 
   .lesson__caption {
@@ -181,12 +394,51 @@ const { lesson } = arabic;
   }
 
   @media (max-width: 960px) {
+    .ar-product,
     .ar-body {
       grid-template-columns: minmax(0, 1fr);
     }
 
     .ar-body > :global(.deep) {
       order: 2;
+    }
+  }
+
+  @media (max-width: 640px) {
+    .ar-features {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      padding-top: var(--s3);
+    }
+
+    .ar-features div {
+      padding: 0;
+      border: 0;
+    }
+
+    .ar-features dt {
+      display: inline-flex;
+      align-items: center;
+      min-height: 28px;
+      padding: 0 0.6em;
+      border: 1px solid var(--line-2);
+      font-family: var(--mono);
+      font-size: 0.75rem;
+      color: var(--bone-2);
+    }
+
+    .ar-features dd {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      overflow: hidden;
+      clip: rect(0 0 0 0);
+      white-space: nowrap;
+    }
+
+    .bakeoff__params {
+      display: none;
     }
   }
 

@@ -1,0 +1,116 @@
+---
+/** A screenshot of a live app in a minimal browser frame that links to the app. */
+export interface ShotData {
+  src1440: string;
+  src960: string;
+  width: number;
+  height: number;
+  host: string;
+  alt: string;
+  caption: string;
+}
+
+interface Props {
+  shot: ShotData;
+  href: string;
+}
+
+const { shot, href } = Astro.props;
+---
+
+<figure class="shot">
+  <a class="shot__frame" href={href} target="_blank" rel="noopener">
+    <span class="shot__bar">
+      <span class="shot__host"><span class="dot dot--live" aria-hidden="true"></span><span class="shot__url">{shot.host}</span></span>
+      <span class="shot__open label">Open<span class="shot__open-long"> the app</span> <span aria-hidden="true">↗</span></span>
+    </span>
+    <img
+      src={shot.src1440}
+      srcset={`${shot.src960} 960w, ${shot.src1440} 1440w`}
+      sizes="(min-width: 1320px) 820px, (min-width: 961px) 64vw, 100vw"
+      width={shot.width}
+      height={shot.height}
+      loading="lazy"
+      decoding="async"
+      alt={shot.alt}
+    />
+  </a>
+  <figcaption>{shot.caption}</figcaption>
+</figure>
+
+<style>
+  .shot {
+    margin: 0;
+  }
+
+  .shot__frame {
+    display: block;
+    border: 1px solid var(--line-2);
+    background: var(--ink-1);
+    transition: border-color var(--t-fast) var(--ease-out);
+  }
+
+  .shot__frame:hover {
+    border-color: var(--bone-3);
+  }
+
+  .shot__bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--s3);
+    min-height: 38px;
+    padding: 0 var(--s4);
+    border-bottom: 1px solid var(--line);
+    font-family: var(--mono);
+    font-size: 0.75rem;
+    color: var(--bone-2);
+  }
+
+  .shot__host {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.7em;
+    min-width: 0;
+  }
+
+  .shot__url {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .shot__open {
+    flex-shrink: 0;
+    transition: color var(--t-fast) var(--ease-out);
+  }
+
+  .shot__frame:hover .shot__open {
+    color: var(--signal);
+  }
+
+  .shot img {
+    display: block;
+    width: 100%;
+    height: auto;
+    aspect-ratio: 1440 / 900;
+    background: var(--ink-2);
+  }
+
+  .shot figcaption {
+    margin-top: var(--s2);
+    color: var(--bone-3);
+    font-size: 0.8125rem;
+  }
+
+  @media (max-width: 640px) {
+    .shot__open-long {
+      display: none;
+    }
+
+    .shot__bar {
+      padding-inline: var(--s3);
+    }
+  }
+</style>
