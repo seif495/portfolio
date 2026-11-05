@@ -35,7 +35,7 @@ export const workItems: WorkItem[] = [
     anchor: '#fpl',
     disciplines: ['llm', 'ml', 'systems'],
     stack: [
-      'python', 'typescript', 'cypher', 'xgboost', 'sklearn', 'evaluation', 'embeddings', 'llmapi',
+      'python', 'typescript', 'cypher', 'xgboost', 'sklearn', 'evaluation', 'explain', 'milp', 'embeddings', 'llmapi',
       'spacy', 'pandas', 'numpy', 'matplotlib', 'neo4j', 'fastapi', 'react', 'docker', 'actions', 'azure', 'pytest',
     ],
   },
@@ -129,7 +129,7 @@ export const fpl = {
   index: '01',
   title: 'FPL FantasyTrivia',
   tagline: 'A Graph-RAG assistant for Fantasy Premier League, backed by a points model that has to beat honest baselines.',
-  role: 'Lead contributor, 185 of 218 commits',
+  role: 'Lead contributor, 288 of 351 commits',
   period: 'Dec 2025 – present',
   status: 'Live',
   links: [
@@ -141,11 +141,11 @@ export const fpl = {
     { k: 'Goal', v: 'Answer Fantasy Premier League questions from seven seasons of real data, not from an LLM’s memory.' },
     {
       k: 'Approach',
-      v: 'Rule-based intents and entity extraction choose one of 20+ parameterized Cypher queries over Neo4j; sentence embeddings add semantic matches; the LLM answers only from what came back.',
+      v: 'Rule-based intents and entity extraction choose one of 30+ parameterized Cypher queries over Neo4j; sentence embeddings add semantic matches; the LLM answers only from what came back, and the answer cards are built from the query rows, not from its text.',
     },
     {
       k: 'Result',
-      v: 'Live and refreshed daily. On seasons it never saw, the XGBoost model’s top-20 picks score 11% more than the best simple baseline’s.',
+      v: 'Live and refreshed daily. On the test seasons, the v4 model’s top-20 picks score 15% more than the best simple baseline’s (95% CI 8–21%), and since gameweek 9 it has managed its own FPL team under the real rules.',
     },
   ] satisfies BriefItem[],
   screenshot: {
@@ -154,22 +154,23 @@ export const fpl = {
     width: 1440,
     height: 900,
     host: 'pitchme.polandcentral.cloudapp.azure.com',
-    alt: 'The Pitch Me home page: the gameweek 7 deadline countdown, an “Ask the assistant” box with example questions, the week’s fixtures and the league table.',
-    caption: 'The live app, branded Pitch Me, as captured on 14 Oct 2026.',
+    alt: 'The Pitch Me home page for gameweek 10: the model’s captain pick (Erling Haaland, 5.4 expected points), an “Ask the assistant” box with example questions, the gameweek’s fixtures and the league table.',
+    caption: 'The live app, branded Pitch Me, as captured on 5 Nov 2026.',
   },
   appFeatures: [
-    { k: 'Assistant', v: 'Plain-English questions answered from the graph' },
-    { k: 'Predictions', v: 'Next-gameweek expected points from the XGBoost model' },
-    { k: 'Team of the week', v: 'A 15-player squad chosen by an optimizer within the £100m budget' },
-    { k: 'Players', v: 'Typo-tolerant search and head-to-head comparisons' },
-    { k: 'Trivia', v: 'Generated quiz questions on seven seasons of data' },
+    { k: 'Assistant', v: 'Plain-English questions answered from the graph, streamed with visual answer cards' },
+    { k: 'Predictions', v: 'Next-gameweek expected points, each explained with SHAP and LIME' },
+    { k: 'Team of the week', v: 'The best 15 within £100m, and how the model’s past picks actually scored' },
+    { k: 'ML manager', v: 'A season-long FPL team the model runs under the real rules, from gameweek 9' },
+    { k: 'Clubs and matches', v: 'Club pages, match pages with goal minutes, and news' },
+    { k: 'Players and trivia', v: 'Typo-tolerant search, head-to-head comparisons and generated quiz questions' },
   ],
   graphSnapshot: {
-    date: '14 Oct 2026',
+    date: '5 Nov 2026',
     stats: [
-      { value: '184,185', label: 'relationships' },
-      { value: '5,248', label: 'nodes' },
-      { value: '2,282', label: 'players' },
+      { value: '186,199', label: 'relationships' },
+      { value: '5,249', label: 'nodes' },
+      { value: '2,283', label: 'players' },
       { value: '7', label: 'seasons' },
     ],
   },
@@ -178,23 +179,33 @@ export const fpl = {
     audit:
       'Auditing it showed an opponent-strength merge that multiplied rows 27×, and a “next match” target that mostly landed on a copy of the same match.',
     after:
-      'The rebuilt v3 model sees only what is known before the deadline. Its R² is 0.32, about what knowing every player’s true season average would give, and it picks better players.',
+      'The rebuilt model sees only what is known before the deadline. v4 adds bookmaker odds, team ratings, transfer trends and FPL’s availability flags, and follows players by their FPL code. Its R² is 0.34, about what knowing every player’s true season average would give, and it picks better players.',
   },
   ops: [
-    { when: 'Daily', what: 'Fetch the current season from the FPL API, update the graph idempotently, write next-gameweek predictions, reload the API.' },
+    {
+      when: 'Daily',
+      what: 'Fetch the current season from the FPL API, update the graph idempotently, write predictions and the model’s squad pick, plan the ML manager’s next move, reload the API. Extra runs catch bookmaker prices and late team news before each deadline, and a step that only logs a problem still fails the healthcheck.',
+    },
     { when: 'Weekly', what: 'Retrain in a child process. A candidate replaces the live model only if its held-out top-20 beats every baseline and stays within 10% of the active model.' },
-    { when: 'On push', what: 'GitHub Actions redeploys the Docker Compose stack (Caddy, FastAPI, Neo4j) on an Azure VM over SSH, and rebuilds the embeddings when the data or embedding code changes.' },
+    {
+      when: 'Before a change',
+      what: 'Backtest workflows score each candidate feature or planner rule over four held-out seasons with several seeds and paired bootstrap CIs. Most ideas lose and are written down as not adopted.',
+    },
+    { when: 'On push', what: 'Every pull request runs the tests, lint and the frontend build; a push to main redeploys the Docker Compose stack (Caddy, FastAPI, Neo4j) on an Azure VM over SSH.' },
   ],
   facts: [
-    { k: 'Training data', v: '166,298 player × fixture rows, six seasons plus the current one' },
-    { k: 'Split', v: 'Train 2020–24 · early-stop 2024–25 · test 2025–26 + 2026–27 (43 gameweeks)' },
-    { k: 'Retrieval', v: 'Intent rules → 20+ parameterized Cypher queries, plus MiniLM / MPNet embeddings' },
-    { k: 'Tests', v: '256 automated tests, including property-based and leakage tests' },
+    { k: 'Training data', v: '168,302 player × fixture rows, six seasons plus the current one' },
+    { k: 'Features', v: '96: form, team strength, bookmaker odds, transfer trends and FPL availability, all from before the deadline' },
+    { k: 'Split', v: 'Train 2020–24 · early-stop 2024–25 · test 2025–26 + 2026–27 (46 gameweeks)' },
+    { k: 'Served model', v: 'An average of 5 XGBoost models, each with half the early-stopped trees' },
+    { k: 'Retrieval', v: 'Intent rules → 30+ parameterized Cypher queries, plus MiniLM / MPNet embeddings' },
+    { k: 'Tests', v: '800+ automated tests, including property-based and leakage tests' },
   ],
   limits: [
-    'No historical injury or rotation data: 60% of rows are players who did not play, and that is the largest error source.',
-    'Player identity is a name string, so a player spelt differently across seasons loses his history.',
-    'A squared-error objective on a zero-inflated target; a two-stage minutes × points model is the next step.',
+    'The test seasons are no longer fully untouched: October’s team-strength features were chosen with a backtest whose folds include them, and v4’s backtest gain did not hold on the untouched 2022-23 fold. Fresh evidence comes from a ledger that scores v4 against the retired v3 on every new gameweek.',
+    'The evaluation report scores a single model; the app serves a five-model average, adopted because a backtest showed it picked better squads and captains.',
+    'FPL availability snapshots exist for only about a dozen gameweeks of 2025-26, and 60% of rows are players who did not play, still the largest error source.',
+    'A squared-error objective on a zero-inflated target; a Tweedie or two-stage minutes × points model is the next step.',
   ],
 } satisfies CaseStudy & Record<string, unknown>;
 
@@ -368,7 +379,7 @@ export const arabic = {
 
 /** One line per case study for the index at the top of the Work section. */
 export const caseIndex = [
-  { id: 'fpl', index: '01', title: 'FPL FantasyTrivia', area: 'Graph-RAG · ML · MLOps', result: '+11% top-20 pick quality over the best baseline', status: 'Live' },
+  { id: 'fpl', index: '01', title: 'FPL FantasyTrivia', area: 'Graph-RAG · ML · MLOps', result: '+15% top-20 pick quality over the best baseline', status: 'Live' },
   { id: 'ransomware', index: '02', title: 'Ransomware detection', area: 'Anomaly detection · backend', result: '740 synthetic evaluation runs; blind spots documented', status: 'Prototype' },
   { id: 'xcv', index: '03', title: 'X-CV', area: 'Computer vision', result: '0.959 ROC AUC (May model; clean retrain under way)', status: 'Team of 7' },
   { id: 'arabic', index: '04', title: 'Code-switched Arabic QA', area: 'NLP · RAG', result: 'Live chatbot over 13 dialect-heavy transcripts', status: 'Live' },

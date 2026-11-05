@@ -39,7 +39,8 @@ const ENTITY_LABEL: Record<string, string> = {
 };
 
 const recorded = new Date(traces.recordedAt);
-const recordedText = `${recorded.getUTCDate()} Oct ${recorded.getUTCFullYear()}, ${String(recorded.getUTCHours()).padStart(2, '0')}:${String(recorded.getUTCMinutes()).padStart(2, '0')} UTC`;
+const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+const recordedText = `${recorded.getUTCDate()} ${MONTHS[recorded.getUTCMonth()]} ${recorded.getUTCFullYear()}, ${String(recorded.getUTCHours()).padStart(2, '0')}:${String(recorded.getUTCMinutes()).padStart(2, '0')} UTC`;
 
 const prepared = traces.traces.map((t) => {
   const lines = t.cypher ? t.cypher.split('\n').length : 0;
@@ -133,7 +134,7 @@ const { modelStory } = fpl;
               <p class="step__k label">01 · Intent</p>
               <div class="step__v">
                 <code class="pill pill--signal">{t.intent}</code>
-                <span class="step__note">A rule-based classifier picks one of 20 intents; each maps to a parameterized query.</span>
+                <span class="step__note">A rule-based classifier picks one of 22 intents; most map to a parameterized query.</span>
               </div>
             </li>
             <li class="step" style="--i:1">
@@ -225,7 +226,7 @@ const { modelStory } = fpl;
                       </li>
                     ))}
                   </ul>
-                  <span class="step__note">XGBoost v3 expected points, scaled by FPL’s chance-of-playing flags.</span>
+                  <span class="step__note">v4 expected points (an average of five XGBoost models), with doubtful players scaled by fitted availability factors.</span>
                 </div>
               </li>
             )}
@@ -288,7 +289,7 @@ const { modelStory } = fpl;
             <p>{modelStory.audit}</p>
           </li>
           <li>
-            <span class="story__fig serif">R² 0.32</span>
+            <span class="story__fig serif">R² 0.34</span>
             <p>{modelStory.after}</p>
           </li>
         </ol>

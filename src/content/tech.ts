@@ -37,6 +37,8 @@ export const tech = {
   timeseries: { label: 'Time-series regression', cat: 'Modeling & evaluation' },
   robuststats: { label: 'Robust statistics (median/MAD)', cat: 'Modeling & evaluation', graph: true },
   evaluation: { label: 'Evaluation design', cat: 'Modeling & evaluation', graph: true },
+  explain: { label: 'Model explainability (SHAP, LIME)', cat: 'Modeling & evaluation' },
+  milp: { label: 'Optimization (SciPy MILP)', cat: 'Modeling & evaluation' },
 
   langchain: { label: 'LangChain', cat: 'LLMs & retrieval', graph: true },
   chromadb: { label: 'ChromaDB', cat: 'LLMs & retrieval', graph: true },
