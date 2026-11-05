@@ -401,7 +401,7 @@ export const moreWork = [
   {
     id: 'marketplace',
     title: 'Freelance marketplace microservices',
-    kind: 'Team of 16 · contract service',
+    kind: 'Team of 15 · contract service',
     text: 'Spring Boot services with service-owned data, RabbitMQ domain events and a compensating payment saga. I worked on the contract service’s saga consumer and event listeners.',
     links: [{ label: 'Source', href: 'https://github.com/Sherlemious/26-Oceans15-Freelance' }],
   },
