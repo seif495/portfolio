@@ -46,10 +46,14 @@ Every figure on the page is traceable:
   counted as his).
 - **Ransomware detection** (private repo `seif495/ransomware-detection-tsdb`): `docs/FINDINGS.md` (Task 9, Findings
   41–43) for evaluation results; `src/detection/baseline.py` and `config.py` for the scoring rule and defaults.
-- **X-CV** (`MaroSalah02/X-CV`): the confusion matrix and ROC AUC are the May 2026 test-set report in
-  `Model Fine-tuning/Models Workspaces/X-Ray Fracture Detection/module2_notebook.ipynb`. `DATA_AUDIT.md` in the same
-  folder (Oct 2026) shows that split leaked, which is why the page labels them as the May model; replace them with
-  the clean-split Kaggle results when the retraining finishes. The X-ray check's numbers come from
+- **X-CV** (`MaroSalah02/X-CV`, main at `a680c27`, 5 Nov 2026): the fracture classifier is run 2 from
+  `Model Fine-tuning/Models Workspaces/X-Ray Fracture Detection/DATA_AUDIT.md`. The confusion matrix was computed from
+  the private Kaggle kernel `seifeldinmoheb/xcv-fracture-run2-calibration`'s `val_test_predictions_original_files.csv`
+  (every val/test image scored from its original file with the Pipeline's preprocessing): FracAtlas test without
+  hardware (579), at the deployed threshold 0.241, which is Youden's index on FracAtlas val (recomputed: 0.2408). The
+  AUCs match `seifeldinmoheb/xcv-fracture-fracatlas-graz`'s `results.json`. The May 2026 numbers
+  (`module2_notebook.ipynb`, 0.959 AUC on 874) came from a leaky split and are no longer used. Detector results:
+  `Model Fine-tuning/Models Workspaces/X-Ray Bounding Box Extraction/benchmark/README.md`. The X-ray check's numbers:
   `Model Fine-tuning/Models Workspaces/X-Ray Validation Gate/README.md`.
 - **Arabic QA** (`seif495/arabic-nlp-qa-rag`): `README.md` and `docs/reports/ms3_report.md` for the corpus and the
   Milestone 3 retrieval failure; `web/README.md` and `docs/reports/ms3_web_model_selection.md` (main at `4fff903`,

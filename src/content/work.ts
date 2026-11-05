@@ -56,7 +56,7 @@ export const workItems: WorkItem[] = [
     kind: 'project',
     anchor: '#xcv',
     disciplines: ['cv', 'ml'],
-    stack: ['python', 'pytorch', 'evaluation', 'cnn', 'fastapi'],
+    stack: ['python', 'pytorch', 'evaluation', 'cnn', 'detection', 'fastapi'],
   },
   {
     id: 'arabic',
@@ -258,8 +258,8 @@ export const xcv = {
   index: '03',
   title: 'X-CV',
   tagline: 'An X-ray analysis pipeline: check that the upload is an X-ray, find the body region, decide whether a bone is fractured, box the fracture, and explain it in plain language.',
-  role: 'Team of 7 · I built the fracture classifier and the X-ray check',
-  period: 'Apr – May 2026; reworked Oct 2026',
+  role: 'Team of 7 · mine: the fracture classifier, the X-ray check and the detector benchmark',
+  period: 'Apr – May 2026; Oct – Nov 2026',
   status: 'Course project · demo backend offline',
   links: [
     { label: 'Demo', href: 'https://marosalah02.github.io/X-CV/' },
@@ -279,16 +279,18 @@ export const xcv = {
     },
     {
       k: 'My part',
-      v: 'The fracture classifier, a DenseNet-121 trained on Kaggle and wired into the FastAPI pipeline that streams each stage to the React UI. In October I rebuilt its data pipeline (near-duplicate clustering, patient-level splits, and dropping a dataset whose labels could be read from image style) and added the X-ray check, which rejects 99.87% of 10,800 held-out non-X-ray images.',
+      v: 'The fracture classifier, a DenseNet-121 trained on Kaggle and wired into the FastAPI pipeline that streams each stage to the React UI. An audit showed the first version’s test split leaked into training, so in October I rebuilt its data pipeline (near-duplicate clustering, patient-level splits, dropping a dataset whose labels could be read from image style), retrained it on FracAtlas and GRAZPEDWRI-DX, and added the X-ray check, which rejects 99.87% of 10,800 held-out non-X-ray images. In November I benchmarked three box detectors on a leakage-free split.',
     },
     {
       k: 'Result',
-      v: 'May 2026 model: 89.0% accuracy and 0.959 ROC AUC on 874 held-out X‑rays. The October audit found that this test split leaked into training, so these figures overstate it; retraining on clean splits is under way.',
+      v: 'On clean test sets, ROC AUC 0.930 on 579 FracAtlas X‑rays and 0.982 on 1,951 GRAZPEDWRI-DX wrist X‑rays. For the boxes, on the same budget, Faster R-CNN reached 0.41 mAP@50 and the deployed RT-DETR 0.11; its old 0.71 came from a leaky split.',
     },
   ] satisfies BriefItem[],
-  confusion: { tn: 470, fp: 55, fn: 41, tp: 308 },
-  auc: 0.959,
-  caveat: 'A course research prototype. Not a medical device, not clinically validated.',
+  // FracAtlas test without surgical hardware, at the deployed threshold (0.241, Youden on FracAtlas val)
+  confusion: { tn: 466, fp: 25, fn: 17, tp: 71 },
+  auc: 0.93,
+  caveat:
+    'A course research prototype. Not a medical device, not clinically validated. Images with surgical hardware were kept out of training and score worse (AUC 0.80 on 69 wrist X-rays).',
 } satisfies CaseStudy & Record<string, unknown>;
 
 export const arabic = {
@@ -381,7 +383,7 @@ export const arabic = {
 export const caseIndex = [
   { id: 'fpl', index: '01', title: 'FPL FantasyTrivia', area: 'Graph-RAG · ML · MLOps', result: '+15% top-20 pick quality over the best baseline', status: 'Live' },
   { id: 'ransomware', index: '02', title: 'Ransomware detection', area: 'Anomaly detection · backend', result: '740 synthetic evaluation runs; blind spots documented', status: 'Prototype' },
-  { id: 'xcv', index: '03', title: 'X-CV', area: 'Computer vision', result: '0.959 ROC AUC (May model; clean retrain under way)', status: 'Team of 7' },
+  { id: 'xcv', index: '03', title: 'X-CV', area: 'Computer vision', result: '0.930 ROC AUC on clean FracAtlas test X‑rays', status: 'Team of 7' },
   { id: 'arabic', index: '04', title: 'Code-switched Arabic QA', area: 'NLP · RAG', result: 'Live chatbot over 13 dialect-heavy transcripts', status: 'Live' },
 ];
 
