@@ -45,7 +45,7 @@ export const tech = {
   openllm: { label: 'Open-weight LLMs (Llama 3.1, Zephyr)', cat: 'LLMs & retrieval' },
   spacy: { label: 'spaCy', cat: 'LLMs & retrieval' },
 
-  cnn: { label: 'CNN classifiers (DenseNet-121)', cat: 'Vision & reasoning' },
+  cnn: { label: 'CNN classifiers (DenseNet-121, EfficientNet-B0)', cat: 'Vision & reasoning' },
   yolo: { label: 'YOLO segmentation', cat: 'Vision & reasoning', graph: true },
   opencv: { label: 'OpenCV', cat: 'Vision & reasoning' },
   ocr: { label: 'OCR (Tesseract, Azure)', cat: 'Vision & reasoning', graph: true },

@@ -246,15 +246,16 @@ export const xcv = {
   id: 'xcv',
   index: '03',
   title: 'X-CV',
-  tagline: 'An X-ray analysis pipeline: find the body region, decide whether a bone is fractured, box the fracture, and explain it in plain language.',
-  role: 'Team of 7 · I built the fracture-classification module',
-  period: 'Apr – May 2026',
-  status: 'Course project · demo online',
+  tagline: 'An X-ray analysis pipeline: check that the upload is an X-ray, find the body region, decide whether a bone is fractured, box the fracture, and explain it in plain language.',
+  role: 'Team of 7 · I built the fracture classifier and the X-ray check',
+  period: 'Apr – May 2026; reworked Oct 2026',
+  status: 'Course project · demo backend offline',
   links: [
     { label: 'Demo', href: 'https://marosalah02.github.io/X-CV/' },
     { label: 'Source', href: 'https://github.com/MaroSalah02/X-CV' },
   ],
   stages: [
+    { id: 'gate', label: 'X-ray check', note: 'EfficientNet-B0, stops non-X-ray uploads', mine: true },
     { id: 'region', label: 'Region classifier', note: 'Which body part is this?', mine: false },
     { id: 'fracture', label: 'Fracture classifier', note: 'DenseNet-121, fractured or not', mine: true },
     { id: 'boxes', label: 'Bounding boxes', note: 'RT-DETR, only if a fracture is found', mine: false },
@@ -263,13 +264,16 @@ export const xcv = {
   brief: [
     {
       k: 'Goal',
-      v: 'Turn an uploaded X-ray into a body region, a fracture verdict, a box around the fracture and a readable summary.',
+      v: 'Turn an uploaded X-ray into a body region, a fracture verdict, a box around the fracture and a readable summary, and turn away anything that is not an X-ray.',
     },
     {
       k: 'My part',
-      v: 'The fracture classifier: MD5 de-duplication across 3,196 images, augmentation, a DenseNet-121 trained on Kaggle with tuned confidence handling, then integration into the FastAPI pipeline that streams each stage to the React UI.',
+      v: 'The fracture classifier, a DenseNet-121 trained on Kaggle and wired into the FastAPI pipeline that streams each stage to the React UI. In October I rebuilt its data pipeline (near-duplicate clustering, patient-level splits, and dropping a dataset whose labels could be read from image style) and added the X-ray check, which rejects 99.87% of 10,800 held-out non-X-ray images.',
     },
-    { k: 'Result', v: '89.0% accuracy and 0.959 ROC AUC on 874 held-out X‑rays.' },
+    {
+      k: 'Result',
+      v: 'May 2026 model: 89.0% accuracy and 0.959 ROC AUC on 874 held-out X‑rays. The October audit found that this test split leaked into training, so these figures overstate it; retraining on clean splits is under way.',
+    },
   ] satisfies BriefItem[],
   confusion: { tn: 470, fp: 55, fn: 41, tp: 308 },
   auc: 0.959,
@@ -366,7 +370,7 @@ export const arabic = {
 export const caseIndex = [
   { id: 'fpl', index: '01', title: 'FPL FantasyTrivia', area: 'Graph-RAG · ML · MLOps', result: '+11% top-20 pick quality over the best baseline', status: 'Live' },
   { id: 'ransomware', index: '02', title: 'Ransomware detection', area: 'Anomaly detection · backend', result: '740 synthetic evaluation runs; blind spots documented', status: 'Prototype' },
-  { id: 'xcv', index: '03', title: 'X-CV', area: 'Computer vision', result: '0.959 ROC AUC on 874 held-out X‑rays', status: 'Team of 7' },
+  { id: 'xcv', index: '03', title: 'X-CV', area: 'Computer vision', result: '0.959 ROC AUC (May model; clean retrain under way)', status: 'Team of 7' },
   { id: 'arabic', index: '04', title: 'Code-switched Arabic QA', area: 'NLP · RAG', result: 'Live chatbot over 13 dialect-heavy transcripts', status: 'Live' },
 ];
 

@@ -24,7 +24,7 @@ const cells = [
 <article class="case" id="xcv" aria-labelledby="xcv-title">
   <CaseHeader {...xcv} />
 
-  <ol class="flow" aria-label="X-CV pipeline" data-reveal>
+  <ol class="flow" aria-label="X-CV pipeline" style={`--stages:${xcv.stages.length}`} data-reveal>
     <li class="flow__start"><span class="label">Input</span><span>X-ray upload</span></li>
     {
       xcv.stages.map((s, i) => (
@@ -50,7 +50,7 @@ const cells = [
     <section class="instrument cm" aria-labelledby="cm-title" data-cm data-reveal>
       <div class="instrument__bar">
         <span><strong id="cm-title">Held-out test set</strong></span>
-        <span>{total} X-rays · DenseNet-121</span>
+        <span>{total} X-rays · May 2026 model</span>
       </div>
       <div class="cm__body">
         <div class="cm__grid" role="group" aria-label="Confusion matrix. Rows: actual class. Columns: model decision.">
@@ -109,7 +109,7 @@ const cells = [
 <style>
   .flow {
     display: grid;
-    grid-template-columns: 0.8fr repeat(4, minmax(0, 1fr));
+    grid-template-columns: 0.8fr repeat(var(--stages, 4), minmax(0, 1fr));
     margin-top: var(--s7);
     border: 1px solid var(--line-2);
   }
@@ -327,10 +327,6 @@ const cells = [
 
     .flow li + li::before {
       display: none;
-    }
-
-    .flow__start {
-      grid-column: 1 / -1;
     }
 
     .xcv-body {

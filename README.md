@@ -42,8 +42,11 @@ Every figure on the page is traceable:
   model results; the app's `/health` endpoint (14 Oct 2026) for graph size; GitHub contributor stats for commit counts.
 - **Ransomware detection** (private repo `seif495/ransomware-detection-tsdb`): `docs/FINDINGS.md` (Task 9, Findings
   41–43) for evaluation results; `src/detection/baseline.py` and `config.py` for the scoring rule and defaults.
-- **X-CV** (`MaroSalah02/X-CV`): test-set classification report in
-  `Model Fine-tuning/Models Workspaces/X-Ray Fracture Detection/module2_notebook.ipynb`.
+- **X-CV** (`MaroSalah02/X-CV`): the confusion matrix and ROC AUC are the May 2026 test-set report in
+  `Model Fine-tuning/Models Workspaces/X-Ray Fracture Detection/module2_notebook.ipynb`. `DATA_AUDIT.md` in the same
+  folder (Oct 2026) shows that split leaked, which is why the page labels them as the May model; replace them with
+  the clean-split Kaggle results when the retraining finishes. The X-ray check's numbers come from
+  `Model Fine-tuning/Models Workspaces/X-Ray Validation Gate/README.md`.
 - **Arabic QA** (`seif495/arabic-nlp-qa-rag`): `README.md` and `docs/reports/ms3_report.md` for the corpus and the
   Milestone 3 retrieval failure; `web/README.md` and `docs/reports/ms3_web_model_selection.md` (main at `4fff903`,
   31 Oct 2026) for the live site and the MS2 bake-off; `web/ms3web/assets/ms3_chunks.json` for the chunk count. The
